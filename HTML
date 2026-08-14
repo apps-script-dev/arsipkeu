@@ -1,0 +1,3632 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARSIP KEUANGAN</title>
+
+  <!-- JQuery & DataTables CSS -->
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- DataTables JS & Extensions -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+  
+  <!-- Library Eksternal -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+ @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --primary: #6366f1;
+      --bg-gradient: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+      --sidebar-width: 250px;
+      /* Font Scaling */
+      --fs-xs: 0.7rem;    /* 11px */
+      --fs-sm: 0.8rem;    /* 12.8px */
+      --fs-base: 0.875rem;/* 14px - Standar Dashboard Modern */
+      --fs-md: 1rem;      /* 16px */
+      --radius-md: 8px;
+    }
+
+    /* Inisialisasi: Sembunyikan semua halaman agar tidak flicker */
+    #loginPage, #appPage, #loadingOverlay { display: none; }
+
+      body {
+      font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+      background-color: #f8fafc;
+      margin: 0;
+      color: #334155;
+      font-size: var(--fs-base); /* Mengecilkan teks dasar */
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h5, .h5 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+    h6, .h6 { font-size: 0.9rem; font-weight: 600; }
+
+    /* LOADING OVERLAY */
+    #loadingOverlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: white; z-index: 9999; display: flex; align-items: center; justify-content: center;
+    }
+
+    /* LOGIN PAGE LUXURY */
+#loginPage {
+    height: 100vh;
+    background-color: #a78bfa; /* Warna dasar ungu sesuai gambar */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.auth-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    max-width: 950px; /* Sedikit dilebarkan agar lebih lega */
+    height: 600px;    /* Tinggi yang lebih proporsional */
+    background: white;
+    border-radius: 30px; /* Sudut lebih mewah */
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+.auth-sidebar {
+    width: 55%; 
+    background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+    padding: 60px;
+    color: white;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.auth-sidebar::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+}
+.auth-sidebar::after {
+    content: '○'; position: absolute; bottom: 15%; left: 10%; font-size: 3rem; opacity: 0.2;
+}
+
+.auth-sidebar .welcome-title {
+    font-size: 3rem; /* Lebih besar dan tegas */
+    font-weight: 800;
+    margin-bottom: 20px;
+    line-height: 1.1;
+}
+
+.auth-sidebar .welcome-desc {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    opacity: 0.85;
+    max-width: 90%;
+}
+
+/* SISI KANAN (FORM) */
+.auth-form-side {
+    width: 45%;
+    padding: 50px 60px;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 2;
+}
+
+.auth-form-side h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 35px;
+}
+
+.btn-auth-submit {
+    background: #7c3aed !important; /* Warna Ungu (Violet 600) */
+    color: white !important;
+    border: none;
+    padding: 14px;
+    border-radius: 12px !important; /* Menyesuaikan request sebelumnya: tidak terlalu rounded */
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); /* Shadow ungu halus */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-auth-submit:hover {
+    background: #6d28d9 !important; /* Ungu lebih gelap saat kursor menempel */
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(109, 40, 217, 0.4);
+    filter: brightness(1.1);
+}
+
+.btn-auth-submit:active {
+    transform: translateY(0);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .auth-container { 
+        flex-direction: column; 
+        height: auto;
+        max-width: 400px;
+    }
+    .auth-sidebar { width: 100%; height: 150px; padding: 20px; }
+    .auth-form-side { width: 100%; padding: 30px; }
+}
+
+/* INPUT DENGAN IKON (ROUNDED PILL) */
+.input-group-lux {
+    position: relative;
+    width: 100%;
+}
+
+.input-group-lux i {
+    position: absolute;
+    left: 20px; /* Jarak ikon dari tepi kiri kotak */
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    z-index: 10; /* Memastikan ikon berada di lapisan atas */
+    font-size: 1.1rem;
+}
+
+.input-group-lux .form-control {
+    /* KUNCI PERBAIKAN: Tambahkan padding-left yang cukup besar */
+    padding-left: 55px !important; 
+    padding-right: 20px !important;
+    height: 52px; /* Membuat input lebih tinggi agar lebih premium */
+    border-radius: 12px !important;
+    border: 1.5px solid #e2e8f0;
+    background-color: #f8fafc;
+    transition: all 0.3s ease;
+}
+
+.input-group-lux .form-control:focus {
+    border-color: #6366f1;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+    .login-box {
+  background: white;
+  padding: 3rem;
+  border-radius: 1.25rem; /* Sudut melengkung yang elegan (20px) */
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.8); /* Border tipis untuk kesan glass */
+}
+
+/* Update logo/icon di dalam form login agar ikut rounded */
+.login-box .mx-auto {
+  border-radius: 1rem !important; /* Kotak ikon sedikit tumpul */
+  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+}
+
+.login-box .form-control {
+  border-radius: 0.75rem !important;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.login-box .form-control:focus {
+  background-color: white;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.login-box .btn-grad {
+  border-radius: 0.75rem !important;
+  padding: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+}
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-width); background: white; height: 100vh;
+      position: fixed; left: 0; top: 0; border-right: 1px solid #edf2f7;
+      padding: 1.5rem; z-index: 1000;
+    }
+    .main-content { margin-left: var(--sidebar-width); min-height: 100vh; }
+    
+    .top-header {
+      height: 80px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; position: sticky; top: 0; z-index: 900;
+    }
+
+    /* USER MENU DROPDOWN */
+    .user-menu {
+      display: flex; align-items: center; gap: 12px; cursor: pointer;
+      padding: 6px 15px; background: white; border-radius: 50px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .avatar-img { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; }
+
+    /* NAV MENU */
+    .nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.7rem 1rem;      /* Ukuran padding yang pas */
+  margin: 0 12px 6px 12px;   /* Memberi jarak dari tepi sidebar agar bentuk rounded terlihat */
+  border-radius: 8px;        /* Kebulatan sudut yang pas (tidak terlalu bulat, tidak kaku) */
+  color: #64748b;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+    .nav-link.active {
+  background: var(--primary);
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25); /* Shadow halus agar elegan */
+}
+    .nav-link:hover:not(.active) {
+  background: rgba(99, 102, 241, 0.05); /* Warna ungu sangat tipis saat kursor menempel */
+  color: var(--primary);
+}
+    .nav-link i { font-size: 1.1rem; margin-right: 12px; }
+
+     /* Container Utama Pembungkus Tabel */
+.table-lux-wrapper {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+    padding: 0; /* Hilangkan padding agar header penuh ke samping */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Merapikan area atas (Buttons & Search) di dalam pembungkus */
+.dataTables_wrapper .row:first-child {
+    padding-bottom: 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Merapikan area bawah (Info & Pagination) di dalam pembungkus */
+.dataTables_wrapper .row:last-child {
+    padding-top: 20px;
+    margin-top: 15px;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* Styling Baris Tabel agar tidak menempel ke pinggir pembungkus */
+#mainTable {
+    border-collapse: collapse !important;
+}
+
+/* Efek garis halus di bawah header */
+#mainTable thead th {
+    background-color: #fafafa;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: none; /* Tidak lagi uppercase agar lebih modern */
+    padding: 16px 20px !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    letter-spacing: -0.01em;
+}
+
+    /* DATA TABLES OVERRIDE */
+    .dataTables_info, .dataTables_paginate {
+      font-size: var(--fs-xs) !important;
+      font-weight: 500;
+      color: #64748b !important;
+    }
+    .dataTables_filter input {
+      font-size: var(--fs-xs) !important;
+      padding: 4px 10px !important;
+      width: 200px !important;
+    }
+
+    /* CARD DASHBOARD */
+    /* Container Dashboard */
+.dash-header { margin-bottom: 25px; }
+.dash-title { font-size: 1.5rem; font-weight: 800; color: #1e293b; margin: 0; }
+.dash-subtitle { font-size: 0.85rem; color: #64748b; }
+
+/* Card Style Baru (Mirip Gambar) */
+.card-glass {
+  background: white;
+  border-radius: 20px; /* Lebih rounded sesuai gambar */
+  border: 1px solid #f1f5f9;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(148, 163, 184, 0.05);
+  height: 100%;
+}
+
+.card-icon-box {
+  width: 45px; height: 45px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: 15px;
+}
+
+
+.stat-num { font-size: 1.8rem; font-weight: 800; color: #1e293b; margin: 0; }
+.stat-label { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; }
+
+/* Activity List */
+.activity-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid #f8fafc;
+}
+.activity-item:last-child { border: none; }
+.activity-info { flex: 1; min-width: 0; }
+.activity-name { font-size: 0.85rem; font-weight: 600; color: #334155; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.activity-time { font-size: 0.7rem; color: #94a3b8; }
+
+
+    .card-dash {
+      background: white; 
+      border-radius: var(--radius-lg); 
+      border: 1px solid #f1f5f9;
+      padding: 1.5rem; 
+      box-shadow: var(--card-shadow);
+    }
+    .stat-val { font-size: 2rem; font-weight: 700; color: #2b3674; }
+
+    .btn-grad {
+      background: var(--bg-gradient); color: white; border: none;
+      border-radius: var(--radius-md); 
+      padding: 0.6rem 1.2rem;
+      font-weight: 600; transition: 0.2s;
+    }
+    .btn-grad:hover { opacity: 0.9; transform: translateY(-2px); color: white; }
+
+    .form-control, .form-select {
+      font-size: var(--fs-sm);
+    }
+    label.small {
+      font-size: var(--fs-xs) !important;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+    /* MODAL */
+    .modal-content {
+      border-radius: var(--radius-lg) !important;
+      border: none;
+    }
+
+    /* BADGE KATEGORI */
+    .badge {
+      font-size: 0.65rem !important;
+      padding: 4px 8px !important;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    
+    /* Avatar */
+    .avatar-img, .user-menu {
+      border-radius: 0.5rem !important; /* Tidak lagi bulat sempurna */
+    }
+
+    .d-none { display: none !important; }
+
+    .btn-excel-custom {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; /* Hijau Emerald */
+    color: white !important;
+    border: none !important;
+    padding: 6px 16px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    margin-right: 8px !important;
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+    transition: all 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-excel-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px -2px rgba(16, 185, 129, 0.4);
+    filter: brightness(1.1);
+}
+
+  /* Tombol PDF (Merah) */
+  .btn-pdf-custom {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; /* Merah Crimson */
+    color: white !important;
+    border: none !important;
+    padding: 6px 16px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+    transition: all 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-pdf-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px -2px rgba(239, 68, 68, 0.4);
+    filter: brightness(1.1);
+}
+
+.dt-buttons {
+    margin-bottom: 15px;
+}
+  .dataTables_filter input {
+    border-radius: 6px !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 5px 10px !important;
+  }
+  .dataTables_paginate .pagination .page-item.active .page-link {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+  }
+
+  /* Gaya Kartu Statistik Modern */
+.card-stat-modern {
+  border: none;
+  border-radius: 12px;
+  color: white;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.card-stat-modern:hover {
+  transform: translateY(-5px);
+}
+
+/* Variasi Warna Gradien */
+.bg-grad-indigo { background: linear-gradient(45deg, #6366f1, #818cf8); }
+.bg-grad-purple { background: linear-gradient(45deg, #a855f7, #c084fc); }
+.bg-grad-teal   { background: linear-gradient(45deg, #14b8a6, #2dd4bf); }
+.bg-grad-rose   { background: linear-gradient(45deg, #f43f5e, #fb7185); }
+
+/* Ikon di dalam Kartu */
+.icon-box-dash {
+  position: absolute;
+  right: -10px;
+  bottom: -10px;
+  font-size: 5rem;
+  opacity: 0.2;
+  transform: rotate(-15deg);
+}
+
+ .stat-label-modern {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      opacity: 0.8;
+    }
+    .stat-value-modern {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+/* Container Chart */
+.chart-container-modern {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 15px rgba(160, 174, 192, 0.05);
+}
+
+/* Container Upload Mewah */
+.upload-area {
+    border: 2px dashed #e2e8f0;
+    border-radius: var(--radius-md);
+    padding: 25px;
+    text-align: center;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-area:hover, .upload-area.dragover {
+    border-color: var(--primary);
+    background: #f5f3ff;
+}
+
+.upload-area i {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 10px;
+    display: block;
+}
+
+.upload-area p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.upload-area .file-info {
+    display: none;
+    font-weight: 600;
+    color: var(--primary);
+    margin-top: 10px;
+}
+
+/* Sembunyikan input asli */
+#fileInput {
+    display: none;
+}
+
+/* Container Profil Utama */
+.user-profile-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+}
+
+.user-profile-wrapper:hover {
+    background: rgba(99, 102, 241, 0.08); /* Indigo sangat tipis */
+}
+
+/* Teks Selamat Datang */
+.greeting-text {
+    text-align: right;
+    line-height: 1.2;
+}
+
+.greeting-text .welcome {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.greeting-text .user-fullname {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* Avatar Bulat dengan Animasi */
+.avatar-container {
+    position: relative;
+}
+
+.avatar-circle-lux {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+    transition: all 0.4s ease;
+}
+
+.user-profile-wrapper:hover .avatar-circle-lux {
+    transform: scale(1.1) rotate(5deg);
+    border-color: var(--primary);
+}
+
+/* Indikator Online (Animasi Pulse) */
+.online-indicator {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background: #22c55e;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.pulse-animation {
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* Dropdown Menu Mewah */
+.dropdown-menu-lux {
+    border: none !important;
+    border-radius: 12px !important;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    padding: 10px !important;
+    min-width: 220px !important;
+    margin-top: 15px !important;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95) !important;
+}
+
+.btn {
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+/* Tombol Logout Premium */
+.btn-logout-lux {
+  background: linear-gradient(135deg, #f43f5e, #be123c);
+  color: white;
+  border: none;
+  padding: 8px 16px;       /* Dikecilkan ukurannya */
+  border-radius: 8px;      /* Sudut lebih tajam/profesional */
+  font-weight: 700;
+  font-size: 0.75rem;      /* Ukuran teks lebih kecil */
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: 0.3s;
+  box-shadow: 0 4px 8px rgba(244, 63, 94, 0.2);
+  width: fit-content;      /* Tombol mengikuti lebar teks, tidak full */
+  margin: 10px auto 5px auto; /* Otomatis ke tengah */
+}
+
+.btn-logout-lux:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(244, 63, 94, 0.3);
+  opacity: 0.95;
+}
+
+.btn-logout-lux i {
+  font-size: 1rem;         /* Ukuran ikon power disesuaikan */
+}
+
+.greeting-text {
+  text-align: right;
+  line-height: 1.2;
+}
+
+.user-profile-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+/* Pastikan avatar benar-benar bulat */
+.avatar-circle-lux {
+  width: 42px;
+  height: 42px;
+  border-radius: 50% !important; /* Gunakan !important agar tidak kotak */
+  object-fit: cover;
+  border: 2px solid var(--primary);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.user-fullname {
+  min-height: 1.2em; /* Mencegah layout melompat saat teks mulai muncul */
+  display: inline-block;
+}
+
+/* Container Tabel agar lebih clean */
+.card-table-wrapper {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #eaeef4;
+    overflow: hidden;
+}
+
+/* Merapatkan Baris Tabel & Desain Elegan */
+#mainTable tbody td {
+    padding: 4px 15px !important; /* Padding sangat rapat: 4px atas-bawah */
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12.5px; /* Sedikit dikecilkan agar seimbang */
+}
+
+#mainTable thead th {
+    padding: 10px 15px !important;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+}
+
+.doc-name-text {
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.1; /* Merapatkan spasi antar baris teks */
+    margin-bottom: 1px;
+}
+
+.doc-no-text {
+    font-size: 10.5px;
+    color: #64748b;
+    line-height: 1;
+}
+
+#mainTable tbody td {
+    padding: 4px 15px !important; /* Padding sangat rapat: 4px atas-bawah */
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12.5px; /* Sedikit dikecilkan agar seimbang */
+}
+
+/* Efek Hover Row yang Halus */
+#mainTable tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+#mainTable tbody tr:hover {
+    background-color: #fcfcfd;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-soft-purple { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+.badge-soft-blue   { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+.badge-soft-green  { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+
+/* Styling Badge Kategori yang Lebih Tipis */
+.badge-elegant {
+    font-size: 10px !important;
+    padding: 3px 8px !important;
+    font-weight: 600;
+    border-radius: 4px;
+    background-color: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+/* Merampingkan Tombol Aksi */
+.btn-action-solid {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 6px; /* Sesuai permintaan: tidak terlalu rounded */
+    color: white !important; /* Warna ikon jadi putih */
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-saas-view {
+    background-color: #ffffff !important; /* Latar putih bersih */
+    border: 1.5px solid #6366f1 !important; /* Garis tepi ungu indigo */
+    color: #6366f1 !important; /* Warna teks indigo */
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.5px;
+    padding: 4px 12px !important;
+    border-radius: 6px !important; /* Sudut tegas profesional */
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer;
+    height: 28px !important;
+    text-transform: none !important;
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.05) !important;
+}
+
+.btn-action-solid.btn-delete-solid {
+    width: 26px !important;
+    height: 26px !important;
+}
+
+.btn-action-solid i {
+    font-size: 11px !important;
+}
+
+.btn-saas-view:hover {
+    background-color: #6366f1 !important; /* Berubah jadi ungu solid */
+    color: #ffffff !important; /* Teks jadi putih */
+    transform: translateY(-1.5px); /* Sedikit mengangkat */
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25) !important;
+}
+
+.btn-saas-view:active {
+    transform: translateY(0);
+}
+
+.btn-saas-view i {
+    font-size: 14px !important;
+}
+
+.btn-view-solid {
+    background-color: #6366f1; /* Indigo */
+}
+.btn-view-solid:hover {
+    background-color: #4f46e5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+}
+
+.btn-action:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.btn-delete-solid {
+    background-color: #ef4444; /* Merah */
+}
+
+.btn-delete-solid:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+table.dataTable thead .sorting_disabled {
+    background-image: none !important;
+}
+
+/* Merapikan Search Box DataTables */
+.dataTables_filter input {
+    border: 1px solid #e5e7eb !important;
+    background: #ffffff !important;
+    padding: 8px 15px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    width: 250px !important;
+}
+
+/* Pastikan teks Semua Kategori di dropdown terlihat jelas */
+.select2-container .select2-selection--single {
+    height: 32px !important; /* Lebih pendek dari standar 40px */
+    font-size: 12px !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #1e293b !important; /* Biru gelap elegan */
+    font-weight: 600;
+}
+
+.select2-search__field:focus {
+    outline: none !important;
+    border: 1px solid var(--primary) !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 30px !important;
+}
+
+/* Warna saat disorot tetap putih */
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    color: #ffffff !important;
+}
+
+/* Styling Container Utama Select2 */
+.select2-container--default .select2-selection--single {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Efek saat Dropdown diklik (Focus) */
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Teks di dalam Dropdown */
+.select2-selection__rendered {
+    color: #1e293b !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    padding-left: 12px !important;
+}
+
+/* Panah Dropdown */
+.select2-selection__arrow {
+    height: 38px !important;
+    right: 8px !important;
+}
+
+/* PANEL LIST YANG MELAYANG (Floating) */
+.select2-dropdown {
+    border: none !important;
+    border-radius: 10px !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    overflow: hidden;
+}
+
+/* List Item di dalam Dropdown */
+.select2-results__option {
+    padding: 10px 15px !important;
+    font-size: 0.85rem !important;
+    color: #475569 !important; /* Abu-abu elegan */
+}
+
+
+
+
+
+
+/* Warna saat Item terpilih */
+.select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: #f1f5f9 !important;
+    color: var(--primary) !important;
+    font-weight: 600;
+}
+
+/* Sembunyikan search box jika tidak diperlukan (Opsional) */
+.select2-search--dropdown {
+    padding: 8px !important;
+}
+.select2-search__field {
+    border-radius: 6px !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* Mengecilkan Navigasi DataTables (Pagination) */
+.dataTables_paginate .pagination {
+    margin: 10px 0;
+}
+
+.dataTables_paginate .pagination .page-item .page-link {
+    padding: 4px 10px !important; /* Padding lebih kecil */
+    font-size: 11px !important;    /* Ukuran font lebih kecil */
+    font-weight: 600;
+    color: #64748b;
+    border-radius: 4px !important; /* Sudut tumpul yang elegan */
+    margin: 0 2px;
+    border: 1px solid #e2e8f0;
+    background-color: #fff;
+    transition: all 0.2s ease;
+}
+
+/* Tombol Aktif */
+.dataTables_paginate .pagination .page-item.active .page-link {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: white !important;
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+}
+
+/* Tombol Previous/Next yang Elegan */
+.dataTables_paginate .pagination .page-item.previous .page-link,
+.dataTables_paginate .pagination .page-item.next .page-link {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+}
+
+.dataTables_paginate .pagination .page-item:hover:not(.active) .page-link {
+    background-color: #f1f5f9;
+    color: var(--primary);
+}
+
+/* Info Text (Menampilkan x-x dari x data) */
+.dataTables_info {
+    font-size: 11px !important;
+    color: #94a3b8 !important;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+/* Container Utama Chart 3D */
+.chart-3d-root {
+    display: flex;
+    height: 320px;
+    padding-top: 10px;
+}
+
+/* Sumbu Y (Angka sebelah kiri) */
+.y-axis-labels {
+    display: flex;
+    flex-direction: column-reverse; /* Agar angka 0 di bawah */
+    justify-content: space-between;
+    padding-right: 10px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+    width: 30px;
+    margin-bottom: 30px; /* Sesuaikan dengan tinggi label bulan */
+}
+
+/* Area Grafik dengan Grid */
+.chart-3d-wrapper {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: relative;
+    gap: 5px;
+    padding-bottom: 0px;
+}
+
+.grid-lines-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.grid-line {
+    width: 100%;
+    border-top: 1px solid #f1f5f9; /* Garis sangat halus */
+    height: 0;
+}
+
+/* Item per Batang */
+.cyl-bar-item {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+/* Wrapper Tabung */
+.cyl-bar-container {
+    position: relative;
+    width: 35px; /* Lebar tabung */
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+}
+
+.cyl-bar-container:hover {
+    filter: brightness(1.1);
+    transform: scaleX(1.05);
+}
+
+/* Bagian Atas Tabung (Lingkaran) */
+.cyl-bar-top {
+    position: absolute;
+    top: -10px;
+    width: 100%;
+    height: 15px;
+    border-radius: 50%;
+    background: inherit;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 800;
+    color: white;
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.1);
+}
+
+/* Badan Tabung */
+.cyl-bar-body {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 2;
+    /* Efek Gradasi samping agar bulat */
+}
+
+/* Alas Bawah */
+.cyl-bar-base {
+    position: absolute;
+    bottom: -7px;
+    width: 100%;
+    height: 15px;
+    border-radius: 50%;
+    background: inherit;
+    filter: brightness(0.8);
+    z-index: 1;
+}
+
+/* Label Bulan di bawah */
+.cyl-bar-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-top: 15px;
+    text-transform: uppercase;
+}
+
+/* Warna default tabung (Indigo) */
+.cyl-color-main {
+    background: #6366f1; /* Warna dasar */
+}
+.cyl-color-main .cyl-bar-body {
+    background: linear-gradient(to right, #4f46e5 0%, #6366f1 30%, #6366f1 70%, #4338ca 100%);
+}
+
+/* Warna Ungu Soft Gradasi Mewah */
+.cyl-color-purple {
+    background: #a78bfa; /* Warna dasar (Violet) */
+}
+
+.cyl-color-purple .cyl-bar-top {
+    /* Bagian atas tabung lebih terang terkena cahaya */
+    background: #ddd6fe !important; 
+    color: #5b21b6 !important; /* Angka warna ungu tua agar elegan */
+    box-shadow: inset 0 -2px 5px rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.cyl-color-purple .cyl-bar-body {
+    /* Efek 3D: Gelap di pinggir, terang (highlight) di tengah */
+    background: linear-gradient(to right, 
+        #8b5cf6 0%,    /* Shadow kiri */
+        #c4b5fd 20%,   /* Highlight cahaya */
+        #c4b5fd 60%,   /* Highlight cahaya */
+        #7c3aed 100%   /* Shadow kanan */
+    ) !important;
+}
+
+.cyl-color-purple .cyl-bar-base {
+    /* Alas bawah lebih pekat */
+    background: #7c3aed !important;
+    filter: brightness(0.9);
+}
+
+/* Tambahan: Animasi halus saat hover */
+.cyl-bar-container {
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.cyl-bar-container:hover .cyl-bar-top {
+    background: #f5f3ff !important; /* Lebih putih saat disorot */
+}
+
+/* --- CUSTOM SWEETALERT2 LUXURY --- */
+.swal2-popup {
+  border-radius: 20px !important; /* Sudut melengkung mewah */
+  padding: 2rem !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+.swal2-title {
+  color: #1e293b !important;
+  font-weight: 800 !important;
+  font-size: 1.5rem !important;
+  letter-spacing: -0.02em !important;
+}
+
+.swal2-html-container {
+  color: #64748b !important;
+  font-size: 0.95rem !important;
+  line-height: 1.6 !important;
+}
+
+/* Tombol OK / Konfirmasi */
+.swal2-confirm.swal2-styled {
+  background: #7c3aed !important; /* Ungu sesuai tema tombol login */
+  border-radius: 12px !important;
+  padding: 12px 35px !important;
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.swal2-confirm.swal2-styled:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 15px 20px -3px rgba(124, 58, 237, 0.4) !important;
+}
+
+/* Icon Customization */
+.swal2-icon.swal2-warning {
+  border-color: #f59e0b !important;
+  color: #f59e0b !important;
+}
+
+.swal2-icon.swal2-error {
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+}
+
+.swal2-icon.swal2-success {
+  border-color: #22c55e !important;
+  color: #22c55e !important;
+}
+
+/* Menyesuaikan warna spinner SweetAlert */
+.swal2-loader {
+  border-color: #7c3aed transparent #7c3aed transparent !important;
+}
+
+/* Menyesuaikan warna progress bar timer */
+.swal2-timer-progress-bar {
+  background: var(--bg-gradient) !important;
+}
+
+/* Styling Kotak Cari di dalam Dropdown Select2 */
+.select2-search--dropdown {
+    padding: 10px !important;
+    background-color: #f8fafc; /* Warna latar sangat muda */
+}
+
+.select2-search__field {
+    border-radius: 6px !important; /* Tidak terlalu bulat */
+    border: 1px solid #e2e8f0 !important;
+    padding: 6px 10px !important;
+    font-size: 0.8rem !important;
+    outline: none !important;
+}
+
+.select2-search__field:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Mempertegas efek melayang pada dropdown list */
+.select2-dropdown {
+    border: none !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+    border-radius: 10px !important;
+    margin-top: 5px !important;
+}
+
+/* Pembungkus Tabel Kategori */
+.category-lux-wrapper {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #eaeef4;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+/* Penyesuaian DataTables untuk Kategori (Lebih Kecil) */
+#tableCategoryContainer .dataTables_filter input {
+    width: 150px !important;
+    height: 28px;
+    font-size: 11px !important;
+}
+
+#tableCategoryContainer .dataTables_info, 
+#tableCategoryContainer .dataTables_paginate {
+    font-size: 10px !important;
+    margin-top: 10px;
+}
+
+/* Header Tabel Kategori yang Unik */
+#catDataTable thead th {
+    background-color: #fcfcfd;
+    font-size: 10px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 10px !important;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+#catDataTable tbody td {
+    padding: 8px 10px !important;
+    font-size: 12px;
+}
+
+/* Kontainer tombol aksi agar presisi di tengah */
+.action-container {
+    display: flex;
+    justify-content: center; /* Tengah horizontal */
+    align-items: center;     /* Tengah vertikal */
+    gap: 12px;               /* Jarak antar tombol */
+    width: 100%;
+}
+
+/* Memastikan sel tabel AKSI tidak memiliki padding berlebih */
+#mainTable tbody td:last-child {
+    text-align: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Mempercantik tombol View agar ukurannya konsisten */
+.btn-saas-view {
+    min-width: 60px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Wrapper khusus User agar presisi */
+#userTableWrapper {
+    padding: 0 !important; /* Hilangkan padding dalam agar header/footer menyentuh tepi */
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+/* Header Tabel User */
+#userTableMain thead th {
+    background-color: #f8fafc;
+    padding: 12px 15px !important;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* Isi Baris User */
+#userTableMain tbody td {
+    padding: 10px 15px !important;
+    font-size: 13px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Area Atas (Search) & Bawah (Info/Paginate) */
+#userTableWrapper .dataTables_filter {
+    padding: 15px !important;
+    background: #ffffff;
+    display: flex;
+    justify-content: flex-start; /* Cari di kiri sesuai gambar */
+}
+
+#userTableWrapper .dataTables_filter input {
+    margin-left: 0 !important;
+    width: 250px !important;
+    height: 35px;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    padding-left: 35px !important; /* Ruang untuk icon search jika ada */
+    background-color: #f8fafc !important;
+}
+
+#userTableWrapper .dataTables_info {
+    padding: 15px !important;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+#userTableWrapper .dataTables_paginate {
+    padding: 10px 15px !important;
+}
+
+/* Badge System */
+.badge-system {
+    font-size: 9px;
+    padding: 3px 10px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-weight: 700;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+/* Wrapper khusus Kategori agar presisi */
+#tableCategoryContainer {
+    padding: 0 !important; /* Header & Footer menyentuh tepi */
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Header Tabel Kategori */
+#catDataTable thead th {
+    background-color: #f8fafc;
+    padding: 12px 15px !important;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* Baris Tabel Kategori */
+#catDataTable tbody td {
+    padding: 10px 15px !important;
+    font-size: 13px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+/* Area Pencarian Tabel Kategori */
+#tableCategoryContainer .dataTables_filter {
+    padding: 15px !important;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: flex-start;
+}
+
+#tableCategoryContainer .dataTables_filter input {
+    width: 200px !important;
+    height: 32px;
+    border-radius: 6px !important;
+    border: 1px solid #e2e8f0 !important;
+    background-color: #f8fafc !important;
+    font-size: 12px !important;
+}
+
+/* Footer Tabel (Info & Pagination) */
+#tableCategoryContainer .dataTables_info {
+    padding: 12px 15px !important;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+#tableCategoryContainer .dataTables_paginate {
+    padding: 8px 15px !important;
+}
+
+/* Memaksa lebar kolom NO dan AKSI tetap kecil */
+#catDataTable {
+    table-layout: fixed !important; /* Kunci agar width pixel dipatuhi */
+}
+
+#catDataTable td:nth-child(1), 
+#catDataTable th:nth-child(1) {
+    width: 50px !important;
+}
+
+#catDataTable td:nth-child(3), 
+#catDataTable th:nth-child(3) {
+    width: 100px !important;
+}
+
+/* Memastikan teks kategori tidak terpotong */
+#catDataTable td:nth-child(2) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Style Avatar Gradient sesuai Gambar */
+.avatar-gradient {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    /* Gradasi Biru Muda ke Tosca sesuai gambar */
+    background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border: 2px solid white;
+    flex-shrink: 0;
+}
+
+.avatar-gradient i {
+    font-size: 18px; /* Ukuran icon orang di dalam */
+}
+
+/* Mempercantik baris username */
+.user-info-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Style Avatar Kategori (Ungu Gradasi) */
+.category-icon-gradient {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px; /* Bentuk kotak tumpul agar unik */
+    background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 2px 6px rgba(74, 0, 224, 0.2);
+    flex-shrink: 0;
+}
+
+.category-icon-gradient i {
+    font-size: 16px;
+}
+
+/* Penyesuaian agar teks kategori sejajar */
+.cat-info-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Mengunci lebar kolom NO pada tabel User */
+#userTableMain {
+    table-layout: fixed !important; /* Memaksa ukuran kolom mengikuti lebar yang ditentukan */
+}
+
+/* Kolom NO (Indeks 1) */
+#userTableMain th:nth-child(1),
+#userTableMain td:nth-child(1) {
+    width: 45px !important; /* Ukuran sangat kecil dan presisi */
+    text-align: center !important;
+}
+
+/* Kolom AKSI (Indeks 5) */
+#userTableMain th:nth-child(5),
+#userTableMain td:nth-child(5) {
+    width: 80px !important;
+    text-align: center !important;
+}
+
+/* Biarkan kolom lain menyesuaikan secara otomatis */
+#userTableMain th:nth-child(2), #userTableMain td:nth-child(2) { width: auto; }
+
+
+/* Container Kolom Pencarian Mewah */
+.search-container-lux {
+    position: relative;
+    width: 300px; /* Lebar kolom pencarian */
+    margin-bottom: 5px;
+}
+
+/* Kotak Input */
+.search-input-lux {
+    width: 100%;
+    height: 42px;
+    padding: 10px 45px 10px 45px !important; /* Ruang untuk ikon kiri & kanan */
+    border-radius: 50px !important; /* Oval sempurna sesuai gambar */
+    border: 1.5px solid #e2e8f0 !important;
+    background-color: #ffffff !important;
+    font-size: 13px !important;
+    font-weight: 500;
+    color: #1e293b;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+/* Efek saat Fokus */
+.search-input-lux:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.1) !important;
+    outline: none;
+}
+
+/* Ikon Kaca Pembesar (Kiri) */
+.search-icon-left {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 1.1rem;
+    pointer-events: none;
+}
+
+/* Tombol Hapus / Clear "X" (Kanan) */
+.search-clear-right {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #cbd5e1;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: none; /* Sembunyikan jika kosong */
+    transition: color 0.2s;
+}
+
+.search-clear-right:hover {
+    color: #f43f5e; /* Merah saat di-hover */
+}
+
+/* Sembunyikan pencarian default DataTables agar tidak double */
+.dataTables_filter {
+    display: none !important;
+}
+
+.search-clear-right {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #f43f5e; /* Warna merah */
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: none; 
+    
+    /* KUNCI PERBAIKAN */
+    z-index: 100;           /* Pastikan di atas input */
+    pointer-events: auto;   /* Paksa agar bisa diklik */
+    padding: 5px;           /* Memperluas area klik */
+}
+
+/* Container Filter Mewah */
+.filter-section-lux {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 12px 20px;
+    border: 1px solid #eaeef4;
+    border-left: 4px solid var(--primary); /* Aksen garis ungu di kiri */
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+}
+
+/* Label Filter dengan Ikon */
+.filter-title-lux {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.filter-title-lux i {
+    font-size: 14px;
+}
+
+/* Wrapper Dropdown agar presisi */
+.filter-select-wrapper {
+    width: 200px;
+}
+
+/* Menyesuaikan Select2 khusus untuk area filter ini */
+.filter-section-lux .select2-container--default .select2-selection--single {
+    border: 1px solid #e2e8f0 !important;
+    background-color: #f8fafc !important;
+    height: 34px !important;
+}
+
+.filter-section-lux .select2-selection__rendered {
+    line-height: 34px !important;
+    font-size: 12px !important;
+}
+
+.filter-section-lux .select2-selection__arrow {
+    height: 32px !important;
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- 1. LOADING OVERLAY -->
+  <div id="loadingOverlay" style="display: flex;">
+    <div class="text-center">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-3 fw-bold">Menyiapkan Enkripsi Sistem...</p>
+    </div>
+  </div>
+
+  <!-- 2. LOGIN PAGE -->
+  <div id="loginPage">
+  <div class="auth-container">
+    
+    <!-- SISI KIRI: Sidebar (55%) -->
+    <div class="auth-sidebar">
+      <div class="welcome-content">
+        <h1 class="welcome-title" id="sideTitle">Selamat datang!</h1>
+        <p class="welcome-desc" id="sideDesc">Kelola arsip digital Anda dengan lebih aman, cepat, dan profesional dalam satu platform terpadu.</p>
+      </div>
+      
+      <!-- Dekorasi Ikon Abstrak -->
+      <i class="bi bi-plus" style="position:absolute; top:20%; right:15%; opacity:0.3; font-size:40px"></i>
+      <i class="bi bi-circle" style="position:absolute; bottom:15%; left:10%; opacity:0.15; font-size:60px"></i>
+    </div>
+
+    <!-- SISI KANAN: Form (45%) -->
+    <div class="auth-form-side">
+      <div id="loginForm">
+        <h2 style="font-weight: 800; margin-bottom: 10px; color: #1e293b;">Sign In</h2>
+        <p class="text-muted small mb-4">Silakan masuk menggunakan akun Anda.</p>
+        
+        <div class="input-group-lux mb-3">
+          <i class="bi bi-person"></i> <!-- Ikon -->
+          <input type="text" id="user" class="form-control" placeholder="Username or email">
+        </div>
+
+        <div class="input-group-lux mb-3">
+          <i class="bi bi-lock"></i> <!-- Ikon -->
+          <input type="password" id="pass" class="form-control" placeholder="Password">
+        </div>
+
+        <div class="form-options d-flex justify-content-between mb-4" style="font-size: 0.8rem;">
+          <div class="d-flex align-items-center">
+            <input type="checkbox" id="remember" class="form-check-input me-2">
+            <label for="remember" class="mb-0" style="cursor:pointer">Remember me</label>
+          </div>
+          <!-- Ubah bagian ini -->
+          <a href="javascript:void(0)" onclick="forgotPassword()" class="text-decoration-none text-muted fw-bold">Forgot password?</a>
+        </div>
+
+        <button class="btn btn-auth-submit w-100 mb-4" onclick="doLogin()">SIGN IN</button>
+        
+        <p class="text-center small text-muted">
+          Apakah belum punya akun? <a href="javascript:void(0)" onclick="toggleAuth(true)" class="text-primary fw-bold text-decoration-none">Buat akun</a>
+        </p>
+      </div>
+
+      <!-- FORM REGISTER -->
+      <div id="registerForm" class="d-none">
+        <h2 style="font-weight: 800; margin-bottom: 10px; color: #1e293b;">Register</h2>
+        <p class="text-muted small mb-4">Buat akun untuk mulai mengelola arsip.</p>
+        
+        <div class="input-group-lux mb-3">
+          <i class="bi bi-person-badge"></i>
+          <input type="text" id="regFullName" class="form-control" placeholder="Nama Lengkap">
+        </div>
+
+        <!-- TAMBAHKAN KOLOM EMAIL DI SINI -->
+        <div class="input-group-lux mb-3">
+          <i class="bi bi-envelope-at-fill"></i>
+          <input type="email" id="regEmail" class="form-control" placeholder="Email Google (@gmail.com)">
+        </div>
+
+        <div class="input-group-lux mb-3">
+          <i class="bi bi-person-fill"></i>
+          <input type="text" id="regUser" class="form-control" placeholder="Buat Username">
+        </div>
+        
+        <div class="input-group-lux mb-4">
+          <i class="bi bi-lock-fill"></i>
+          <input type="password" id="regPass" class="form-control" placeholder="Password">
+        </div>
+
+        <button class="btn btn-auth-submit w-100 mb-4" onclick="doRegister()" id="btnReg">Buat Akun</button>
+        
+        <p class="text-center small text-muted">
+          Sudah memiliki akun? <a href="javascript:void(0)" onclick="toggleAuth(false)" class="text-primary fw-bold text-decoration-none">Sign In</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+  <!-- 3. MAIN APP PAGE -->
+  <div id="appPage">
+    <aside class="sidebar shadow-sm">
+      <div class="mb-5 px-2">
+        <h4 class="fw-bold text-primary"><i class="bi bi-intersect me-2"></i>ARSIP KEU</h4>
+      </div>
+      <nav>
+        <div class="nav-link active" id="btn-dash" onclick="switchTab('dashboard')">
+          <i class="bi bi-grid-fill"></i> Dashboard
+        </div>
+        <div class="nav-link" id="btn-input" onclick="switchTab('input')">
+          <i class="bi bi-folder-fill"></i> Data Arsip
+        </div>
+        <div class="nav-link" id="btn-settings" onclick="switchTab('settings')">
+          <i class="bi bi-gear-fill"></i> Pengaturan
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-header">
+        <h5 class="fw-bold m-0" id="headerTitle">Dashboard</h5>
+        
+        <div class="dropdown">
+          <div class="user-profile-wrapper dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+  <!-- Teks Selamat Datang (Dibuat selalu muncul) -->
+  <div class="greeting-text me-3">
+  <span class="welcome d-block" style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase;">
+    Selamat Datang,
+  </span>
+  <!-- ID uName akan diisi dengan animasi mengetik -->
+  <span class="user-fullname d-block fw-bold" id="uName"></span>
+</div>
+  
+  <!-- Avatar Bulat -->
+  <div class="avatar-container">
+    <img src="" id="uAvatar" class="avatar-circle-lux">
+    <span class="online-indicator pulse-animation"></span>
+  </div>
+</div>
+
+          <!-- Dropdown Menu -->
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-lux border-0">
+            <li class="px-3 py-2 text-center border-bottom mb-2">
+              <p class="small text-muted mb-0">Sesi aktif sebagai</p>
+              <p class="fw-bold mb-0 text-primary" id="uRole">Administrator</p>
+            </li>
+            <li>
+              <a class="dropdown-item py-2 px-3 rounded-3 mx-2 w-auto mb-1" href="javascript:void(0)" onclick="openUserManagement()">
+                <i class="bi bi-person-bounding-box me-2 text-primary"></i> Profil Saya
+              </a>
+            </li>
+            <li>
+              <button class="btn-logout-lux mt-2" onclick="doLogout(event)">
+                <i class="bi bi-power"></i> LOGOUT
+              </button>
+            </li>
+          </ul>
+        </div>
+      </header>
+
+      <div class="p-4">
+        <!-- TAB DASHBOARD -->
+        <div id="tab-dashboard">
+        <!-- 4 Stat Cards -->
+        <div class="row g-4 mb-4">
+          <div class="col-md-3">
+            <div class="card-glass">
+              <div class="card-icon-box bg-primary bg-opacity-10 text-primary"><i class="bi bi-files"></i></div>
+              <p class="stat-label">Total Arsip</p>
+              <h3 class="stat-num" id="stat-total">0</h3>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card-glass">
+              <div class="card-icon-box bg-success bg-opacity-10 text-success"><i class="bi bi-calendar-check"></i></div>
+              <p class="stat-label">Bulan Ini</p>
+              <h3 class="stat-num" id="stat-month">0</h3>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card-glass">
+              <div class="card-icon-box bg-warning bg-opacity-10 text-warning"><i class="bi bi-grid"></i></div>
+              <p class="stat-label">Kategori</p>
+              <h3 class="stat-num" id="stat-cat-count">0</h3>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card-glass">
+              <div class="card-icon-box bg-info bg-opacity-10 text-info"><i class="bi bi-people"></i></div>
+              <p class="stat-label">User Aktif</p>
+              <h3 class="stat-num" id="stat-users">0</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- Chart Area (8 Kolom) -->
+          <div class="col-md-8">
+            <div class="card-glass">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h6 class="fw-bold m-0" style="color: #1e293b;">Statistik Arsip Dokumen</h6>
+        <p class="small text-muted m-0" style="font-size: 11px;">Data volume arsip dokumen</p>
+    </div>
+    <!-- Bungkus select agar tidak mengganggu layout judul -->
+    <div style="width: 150px;"> 
+        <select id="chartFilter" class="form-select">
+            <option value="year">Tahun Ini</option>
+            <option value="month">Bulan Ini</option>
+            <option value="week">Minggu Ini</option>
+        </select>
+    </div>
+</div>
+
+    <!-- STRUKTUR BARU CHART 3D -->
+    <div class="chart-3d-root">
+        <!-- Angka Sumbu Y -->
+        <div id="yAxisLabels" class="y-axis-labels"></div>
+        
+        <!-- Area Batang dan Grid -->
+        <div class="chart-3d-wrapper">
+            <div id="gridLines" class="grid-lines-container"></div>
+            <div id="chart3DContainer" class="d-flex justify-content-between align-items-flex-end w-100 h-100" style="gap:5px; align-items: flex-end;">
+                <!-- Batang Bar disuntikkan di sini -->
+            </div>
+        </div>
+    </div>
+</div>
+          </div>
+
+          <!-- Recent Activity (4 Kolom) -->
+          <div class="col-md-4">
+            <div class="card-glass">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold m-0" style="color: #1e293b;">Aktivitas Terbaru</h6>
+                <i class="bi bi-arrow-right-short text-primary fs-4" style="cursor:pointer" onclick="switchTab('input')"></i>
+              </div>
+              <!-- TEMPAT DATA MUNCUL -->
+              <div id="recentActivityBody"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <!-- TAB INPUT ARSIP -->
+        <!-- TAB DATA ARSIP -->
+<div id="tab-input" class="d-none">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold m-0" style="letter-spacing: -0.02em;">Manajemen Arsip</h4>
+    <button class="btn btn-grad px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAdd">
+      <i class="bi bi-plus-circle-fill me-2"></i> UNGGAH ARSIP BARU
+    </button>
+  </div>
+
+  <!-- BAGIAN FILTER TERBARU -->
+  <div class="filter-section-lux">
+    <div class="filter-title-lux">
+      <i class="bi bi-funnel-fill"></i>
+      <span>Filter Kategori</span>
+    </div>
+    <div class="filter-select-wrapper">
+      <select id="filterCategory" class="form-select" onchange="filterByCategory()">
+        <option value="">Semua Kategori</option>
+      </select>
+    </div>
+    <div class="ms-auto d-none d-md-block">
+        <span class="text-muted" style="font-size: 11px; font-style: italic;">
+            <i class="bi bi-info-circle me-1"></i> Pilih kategori untuk mempersempit pencarian
+        </span>
+    </div>
+  </div>
+
+  <!-- PEMBUNGKUS TABEL UTAMA -->
+    <div class="table-lux-wrapper shadow-sm mt-3">
+  <!-- Header Area: Tombol di Kiri, Search di Kanan -->
+  <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light bg-opacity-50">
+    <div id="exportButtonsArea"></div> 
+    
+    <div class="search-container-lux">
+      <i class="bi bi-search search-icon-left"></i>
+      <input type="text" id="customSearchInput" class="search-input-lux" placeholder="Cari arsip...">
+      <i class="bi bi-x-circle-fill search-clear-right" id="clearSearch" style="display:none;"></i>
+    </div>
+  </div>
+
+  <table id="mainTable" class="table table-hover align-middle mb-0" style="width:100%">
+    <thead>
+      <tr>
+        <th class="text-center" style="width: 40px;">NO</th>
+        <th>NAMA DOKUMEN</th>
+        <th>NOMOR DOKUMEN</th>
+        <th>TGL. DOKUMEN</th>
+        <th>UKURAN</th>
+        <th>KATEGORI</th>
+        <th>TGL. INPUT</th>
+        <th class="text-center" style="width: 100px;">AKSI</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <!-- Data akan dimuat di sini -->
+    </tbody>
+  </table>
+</div>
+</div>
+
+        <!-- TAB PENGATURAN -->
+<div id="tab-settings" class="d-none">
+  <h5 class="fw-bold mb-4">Pengaturan Sistem</h5>
+  
+  <!-- Sub-Tab Navigation -->
+  <ul class="nav nav-pills mb-4 bg-white p-2 shadow-sm" style="border-radius: var(--radius-md);">
+    <li class="nav-item">
+      <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#sub-category">Manajemen Kategori</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sub-users">User Manajemen</button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- Sub-Tab Kategori -->
+<div class="tab-pane fade show active" id="sub-category">
+  <div class="row g-4">
+    <!-- Form Tambah -->
+    <div class="col-md-4">
+      <div class="card-dash p-4">
+        <h6 class="fw-bold mb-3" style="font-size: 13px;">Tambah Kategori</h6>
+        <div class="input-group-lux mb-3">
+            <i class="bi bi-tag-fill"></i>
+            <input type="text" id="newCatName" class="form-control" placeholder="Nama Kategori Baru">
+        </div>
+        <button class="btn btn-auth-submit w-100 shadow-sm" onclick="saveNewCategory()">
+            <i class="bi bi-plus-lg me-1"></i> SIMPAN KATEGORI
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabel List Kategori dengan Pembungkus -->
+    <div class="col-md-8">
+      <div class="category-lux-wrapper" id="tableCategoryContainer"> <!-- Gunakan ID ini -->
+        <table id="catDataTable" class="table table-hover align-middle mb-0" style="width:100%">
+          <thead>
+            <tr>
+              <!-- Kunci: Berikan lebar pasti di sini -->
+              <th class="text-center" style="width: 50px !important;">NO</th>
+              <th>NAMA KATEGORI</th>
+              <th class="text-center" style="width: 100px !important;">AKSI</th>
+            </tr>
+          </thead>
+          <tbody id="tableCategory"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- Sub-Tab Users -->
+        <div class="tab-pane fade" id="sub-users">
+          <div class="row g-4">
+            <div class="col-md-4">
+              <!-- FORM TAMBAH USER (Design Identik dengan Register) -->
+              <div class="card-dash p-4 shadow-sm border-0">
+                <h6 class="fw-bold mb-4 text-center" style="color: #1e293b; letter-spacing: -0.01em;">Tambah User Baru</h6>
+                
+                <div class="input-group-lux mb-3">
+                  <i class="bi bi-person-badge"></i>
+                  <input type="text" id="newFullName" class="form-control" placeholder="Nama Lengkap">
+                </div>
+
+                <div class="input-group-lux mb-3">
+                  <i class="bi bi-envelope-at-fill"></i>
+                  <input type="email" id="newEmail" class="form-control" placeholder="Email Google (@gmail.com)">
+                </div>
+
+                <div class="input-group-lux mb-3">
+                  <i class="bi bi-person-fill"></i>
+                  <input type="text" id="newUsername" class="form-control" placeholder="Username">
+                </div>
+                
+                <div class="input-group-lux mb-4">
+                  <i class="bi bi-lock-fill"></i>
+                  <input type="password" id="newPassword" class="form-control" placeholder="Password">
+                </div>
+
+                <button class="btn btn-auth-submit w-100 shadow" onclick="saveNewUser()" id="btnSaveUser">
+                  SIMPAN USER
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabel User Sampingnya -->
+             <!-- Tabel List User (Sisi Kanan) -->
+            <div class="col-md-8">
+              <div class="table-lux-wrapper shadow-sm">
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light bg-opacity-50">
+                  <h6 class="fw-bold m-0" style="font-size: 13px; color: #1e293b;">Daftar Pengguna</h6>
+                  
+                  <!-- Kotak Pencarian Custom untuk User -->
+                  <div class="search-container-lux">
+                    <i class="bi bi-search search-icon-left"></i>
+                    <input type="text" id="userSearchInput" class="search-input-lux" placeholder="Cari user...">
+                    <i class="bi bi-x-circle-fill search-clear-right" id="clearUserSearch" style="display:none;"></i>
+                  </div>
+                </div>
+
+                <table id="userTableMain" class="table table-hover align-middle mb-0" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th class="text-center">NO</th>
+                      <th>USERNAME</th>
+                      <th>NAMA LENGKAP</th>
+                      <th>EMAIL</th>
+                      <th class="text-center">AKSI</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tableUsers"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  
+
+  <!-- MODAL INPUT -->
+  <div class="modal fade" id="modalAdd">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 rounded-5 shadow-lg">
+        <!-- Bagian di dalam Modal Body -->
+<div class="modal-body p-4 text-start">
+  <h4 class="fw-bold mb-4 text-center">Input Data Arsip</h4>
+  
+  <div class="row g-3">
+    <div class="col-12">
+      <label class="small fw-bold">Judul Dokumen</label>
+      <input type="text" id="docName" class="form-control" placeholder="Contoh: Laporan Tahunan">
+    </div>
+    
+    <div class="col-md-6">
+      <label class="small fw-bold">Nomor Dokumen</label>
+      <input type="text" id="docNumber" class="form-control" placeholder="Nomor Surat/SK">
+    </div>
+    
+    <div class="col-md-6">
+      <label class="small fw-bold">Kategori</label>
+      <select id="category" class="form-select">
+        <option>Legal</option>
+        <option>Keuangan</option>
+        <option>SDM</option>
+        <option>Operasional</option>
+      </select>
+    </div>
+    
+    <div class="col-md-6">
+      <label class="small fw-bold">Tanggal Dokumen</label>
+      <input type="date" id="docDate" class="form-control">
+    </div>
+    
+    <div class="col-md-6">
+      <label class="small fw-bold">Tanggal Input</label>
+      <!-- Set default ke tanggal hari ini menggunakan Javascript nantinya -->
+      <input type="date" id="inputDate" class="form-control">
+    </div>
+    
+    <div class="col-12">
+    <label class="small fw-bold">Berkas Dokumen (Gambar/PDF)</label>
+    <div class="upload-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
+        <i class="bi bi-cloud-arrow-up"></i>
+        <p id="uploadText">Klik atau Tarik file ke sini untuk mengunggah</p>
+        <div id="fileInfo" class="file-info text-truncate"></div>
+        <input type="file" id="fileInput" accept="image/*,application/pdf" onchange="handleFileSelect(this)">
+    </div>
+    <div id="compressStatus" class="small text-success fw-bold mt-1 d-none">
+        <i class="bi bi-check-circle"></i> File berhasil dikompresi!
+    </div>
+</div>
+ 
+  
+  <button class="btn btn-grad w-100 py-3 mt-4 shadow" id="btnSave" onclick="uploadArsip()">
+    SINKRONISASI SEKARANG
+  </button>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let barChart, donutChart;
+    let dataTableInstance = null;
+    let selectedFileBlob = null;
+    let selectedFileType = "";
+    let selectedFileName = "";
+    let mainChart = null;
+    let catDataTableInstance = null;
+    
+    let userDataTableInstance;
+
+
+    // --- 1. SESSION MANAGEMENT (ANTI-BLANK & ANTI-STUCK) ---
+document.addEventListener("DOMContentLoaded", function() {
+      const inputDate = document.getElementById('inputDate');
+      if (inputDate) inputDate.valueAsDate = new Date();
+      
+      initSelect2();
+      
+      const session = localStorage.getItem('archive_session');
+      if (session) {
+        try {
+          showAppUI(JSON.parse(session));
+        } catch(e) {
+          localStorage.removeItem('archive_session');
+          showLoginUI();
+        }
+      } else {
+        showLoginUI();
+      }
+      
+      // Safety: Pastikan loader mati jika sudah lewat 3 detik
+      setTimeout(() => {
+        const loader = document.getElementById('loadingOverlay');
+        if (loader && loader.style.display !== 'none') loader.style.display = 'none';
+      }, 3000);
+
+      document.getElementById('modalAdd').addEventListener('hidden.bs.modal', resetForm);
+      setupDragAndDrop();
+    });
+
+
+function showResetPasswordForm(token) {
+  // 1. Siapkan tampilan latar belakang (Login Page)
+  const loginPage = document.getElementById('loginPage');
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  
+  if (loginPage) loginPage.style.display = 'flex';
+  if (loginForm) loginForm.classList.add('d-none'); // Sembunyikan form login dulu
+  if (registerForm) registerForm.classList.add('d-none');
+
+  // 2. Munculkan Popup Ganti Password
+  Swal.fire({
+    title: 'Keamanan Akun',
+    text: 'Silakan masukkan password baru Anda untuk memulihkan akses.',
+    input: 'password',
+    inputPlaceholder: 'Password baru',
+    confirmButtonText: 'PERBARUI PASSWORD',
+    confirmButtonColor: '#7c3aed',
+    allowOutsideClick: false,
+    showLoaderOnConfirm: true,
+    preConfirm: (newPass) => {
+      if (!newPass || newPass.length < 5) {
+        return Swal.showValidationMessage('Password minimal 5 karakter!');
+      }
+      return new Promise((resolve) => {
+        // Panggil fungsi di Code.gs
+        google.script.run.withSuccessHandler(res => resolve(res)).finalizeResetPassword(token, newPass);
+      });
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      if (result.value && result.value.success) {
+        // --- JIKA BERHASIL ---
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: result.value.msg,
+          confirmButtonText: 'MASUK SEKARANG',
+          confirmButtonColor: '#7c3aed'
+        }).then(() => {
+          // A. Bersihkan URL dari parameter ?token=... agar tidak diminta reset lagi
+          if (window.history.replaceState) {
+            const cleanUrl = window.location.origin + window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+          }
+
+          // B. Tampilkan kembali form Login secara manual (Anti-Blank)
+          if (loginForm) loginForm.classList.remove('d-none');
+          
+          // C. Panggil fungsi inisialisasi login agar UI bersih
+          showLoginUI(); 
+        });
+      } else {
+        // --- JIKA GAGAL (Token Expired, dll) ---
+        Swal.fire('Gagal', result.value ? result.value.msg : 'Terjadi kesalahan sistem', 'error').then(() => {
+           // Balikkan ke login jika token salah
+           location.reload(); 
+        });
+      }
+    }
+  });
+}
+
+function initSession() {
+  // Listener untuk reset form saat modal ditutup
+  const modalAdd = document.getElementById('modalAdd');
+  if (modalAdd) {
+    modalAdd.addEventListener('hidden.bs.modal', function () {
+      resetForm();
+    });
+  }
+
+  const loading = document.getElementById('loadingOverlay');
+  try {
+    const session = localStorage.getItem('archive_session');
+    if (session) {
+      const res = JSON.parse(session);
+      showAppUI(res);
+    } else {
+      showLoginUI();
+    }
+  } catch (e) {
+    console.error("Gagal memuat sesi:", e);
+    localStorage.removeItem('archive_session');
+    showLoginUI();
+  } finally {
+    // Gunakan delay sedikit agar transisi mulus dan tidak stuck loading
+    setTimeout(() => { 
+      if (loading) loading.style.display = 'none'; 
+    }, 1000);
+  }
+}
+
+   function showAppUI(res) {
+      const loader = document.getElementById('loadingOverlay');
+      if (loader) loader.style.display = 'none';
+
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('appPage').style.display = 'block';
+      
+      document.getElementById('uName').innerText = "" + (res.user || "User");
+      document.getElementById('uAvatar').src = res.avatar || "";
+      
+      switchTab('dashboard');
+      loadCategoryTable();
+    }
+
+// 1. Handling Drag & Drop
+const dropArea = document.getElementById('dropArea');
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, e => {
+        e.preventDefault();
+        e.stopPropagation();
+    }, false);
+});
+
+dropArea.addEventListener('dragover', () => dropArea.classList.add('dragover'));
+dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
+dropArea.addEventListener('drop', (e) => {
+    dropArea.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length) handleFileSelect({ files: files });
+});
+
+// 2. Fungsi Seleksi & Kompresi
+function handleFileSelect(input) {
+      const file = input.files[0]; if(!file) return;
+      selectedFileName = file.name; selectedFileType = file.type;
+      document.getElementById('uploadText').style.display = 'none';
+      document.getElementById('fileInfo').style.display = 'block';
+      document.getElementById('fileInfo').innerText = file.name + " siap!";
+      selectedFileBlob = file; // Simple bypass kompresi dulu untuk test
+    }
+
+// 3. Mesin Kompresi Gambar (Canvas API)
+function compressImage(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // Resize maksimal lebar 1600px (standard HD)
+                const MAX_WIDTH = 1600;
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Export ke Blob dengan kualitas 0.7 (70%)
+                canvas.toBlob((blob) => {
+                    resolve(blob);
+                }, 'image/jpeg', 0.7);
+            };
+        };
+    });
+}
+
+function showLoginUI() {
+      const loader = document.getElementById('loadingOverlay');
+      if (loader) loader.style.display = 'none';
+      document.getElementById('appPage').style.display = 'none';
+      document.getElementById('loginPage').style.display = 'flex';
+    }
+
+    // --- 2. AUTHENTICATION ---
+function doLogin() {
+  const u = document.getElementById('user').value;
+  const p = document.getElementById('pass').value;
+  const rememberCheckbox = document.getElementById('remember');
+  const isRemember = rememberCheckbox ? rememberCheckbox.checked : false;
+
+  // Validasi Input Kosong
+  if (!u || !p) {
+    return Swal.fire({
+      icon: 'warning',
+      title: 'Akses Ditolak',
+      text: 'Username dan Password wajib diisi untuk masuk ke sistem.',
+      confirmButtonText: 'MENGERTI',
+      showClass: { popup: 'animate__animated animate__shakeX' }
+    });
+  }
+
+  // Loading Otentikasi
+  Swal.fire({
+    title: 'Otentikasi...',
+    text: 'Sedang memverifikasi kredensial Anda',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
+
+  google.script.run.withSuccessHandler(res => {
+    Swal.close();
+    if (res && res.success) {
+      // --- LOGIKA REMEMBER ME ---
+      if (isRemember) {
+        localStorage.setItem('remembered_username', u);
+      } else {
+        localStorage.removeItem('remembered_username');
+      }
+
+      // Notifikasi Sukses
+      Swal.fire({
+        icon: 'success',
+        title: 'Login Berhasil!',
+        text: `Selamat datang kembali, ${res.user}`,
+        timer: 2000,
+        showConfirmButton: false,
+        timerProgressBar: true,
+      }).then(() => {
+        localStorage.setItem('archive_session', JSON.stringify(res));
+        showAppUI(res);
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Masuk',
+        text: 'Username atau Password yang Anda masukkan salah.',
+        confirmButtonText: 'COBA LAGI'
+      });
+    }
+  }).withFailureHandler(() => {
+    Swal.close();
+    Swal.fire({
+      icon: 'error',
+      title: 'Koneksi Gagal',
+      text: 'Gagal terhubung ke server. Periksa koneksi internet Anda.',
+      confirmButtonText: 'OK'
+    });
+  }).checkLogin(u, p);
+}
+
+    function typeWriter(text, elementId, speed = 100) {
+  const element = document.getElementById(elementId);
+  element.innerText = ""; // Bersihkan teks awal
+  let i = 0;
+
+  function type() {
+    if (i < text.length) {
+      element.innerText += text.charAt(i);
+      i++;
+      setTimeout(type, speed);
+    }
+  }
+  type();
+}
+
+    function doLogout(event) {
+      if (event) event.preventDefault();
+      Swal.fire({
+        title: 'Konfirmasi Keluar',
+        text: "Sesi Anda akan diakhiri.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#6366f1',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, Logout'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          localStorage.removeItem('archive_session');
+          Swal.fire({ title: 'Logout Berhasil', icon: 'success', timer: 800, showConfirmButton: false })
+          .then(() => { showLoginUI(); });
+        }
+      });
+    }
+
+    
+
+function loadStats() {
+  const filter = $('#chartFilter').val() || 'year';
+  
+  // 1. Muat Statistik Angka & Chart
+  google.script.run.withSuccessHandler(stats => {
+    if(stats) {
+      document.getElementById('stat-total').innerText = stats.total || 0;
+      document.getElementById('stat-month').innerText = stats.monthly[new Date().getMonth()] || 0;
+      document.getElementById('stat-cat-count').innerText = Object.keys(stats.categories).length;
+      renderMainChart(stats, filter);
+    }
+  }).getDashboardData();
+
+  // 2. Muat Jumlah User Aktif
+  google.script.run.withSuccessHandler(users => {
+    if(users) document.getElementById('stat-users').innerText = users.length - 1;
+  }).getAllUsers();
+
+  // 3. MUAT AKTIVITAS TERBARU (KUNCI PERBAIKAN)
+  const container = document.getElementById('recentActivityBody');
+  if (!container) return;
+  
+  container.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+
+  google.script.run.withSuccessHandler(activities => {
+    if (!activities || activities.length === 0) {
+      container.innerHTML = '<p class="text-center text-muted small py-5">Belum ada aktifitas terbaru</p>';
+      return;
+    }
+
+    let html = "";
+    activities.forEach(item => {
+      /* 
+         PEMETAAN KOLOM BARU:
+         [0]ID, [1]Nama, [2]No, [3]TglDok, [4]Kat, [5]TglInput, [6]Link, [7]Uploader
+      */
+      const docName = item[1] || "Dokumen Tanpa Judul";
+      const uploader = item[7] || "System";
+      const dateInput = item[5] || "-";
+
+      html += `
+        <div class="activity-item d-flex align-items-center gap-3 py-3 border-bottom border-light">
+          <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" 
+               style="width: 38px; height: 38px; min-width: 38px; font-size: 1.1rem;">
+            <i class="bi bi-file-earmark-arrow-up-fill"></i>
+          </div>
+          <div class="activity-info flex-grow-1 overflow-hidden">
+            <p class="mb-0 fw-bold text-dark text-truncate" style="font-size: 0.85rem;">${docName}</p>
+            <p class="mb-0 text-muted" style="font-size: 0.75rem;">Oleh: ${uploader} • ${dateInput}</p>
+          </div>
+          <div class="bg-success rounded-circle" style="width: 8px; height: 8px; min-width: 8px;"></div>
+        </div>`;
+    });
+    container.innerHTML = html;
+  }).getRecentActivity();
+}
+
+function renderMainChart(stats, filter) {
+    const barContainer = document.getElementById('chart3DContainer');
+    const gridContainer = document.getElementById('gridLines');
+    const yAxisContainer = document.getElementById('yAxisLabels');
+
+    barContainer.innerHTML = "";
+    gridContainer.innerHTML = "";
+    yAxisContainer.innerHTML = "";
+
+    let labels = [];
+    let values = [];
+
+    if (filter === 'year') {
+        labels = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
+        values = stats.monthly;
+    } else if (filter === 'month') {
+        const now = new Date();
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        for (let d = 1; d <= daysInMonth; d++) {
+            labels.push(d);
+            values.push(stats.daily[d] || 0);
+        }
+    } else if (filter === 'week') {
+        // --- LOGIKA MINGGU INI ---
+        labels = ['SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB', 'MIN'];
+        values = stats.weekly;
+    }
+
+    // 1. Tentukan Skala Maksimal (Sumbu Y)
+    const maxValueReal = Math.max(...values);
+    const maxValue = maxValueReal < 5 ? 5 : Math.ceil(maxValueReal * 1.2); 
+
+    // 2. Buat Grid Lines & Label Y
+    const step = Math.ceil(maxValue / 5);
+    for (let i = 0; i <= maxValue; i += step) {
+        const line = document.createElement('div');
+        line.className = 'grid-line';
+        gridContainer.appendChild(line);
+
+        const label = document.createElement('div');
+        label.innerText = i;
+        yAxisContainer.appendChild(label);
+    }
+
+    // 3. Render Batang 3D
+    values.forEach((val, index) => {
+        const heightPct = (val / maxValue) * 100;
+        const minHeightPct = 4;
+        
+        // Atur lebar batang: Mingguan (7 batang) bisa lebih lebar agar terlihat mewah
+        let barWidth = "70%";
+        if(filter === 'month') barWidth = "85%";
+        if(filter === 'week') barWidth = "50%"; // Lebih proporsional untuk 7 batang
+
+        const barItem = document.createElement('div');
+        barItem.className = 'cyl-bar-item flex-grow-1 d-flex flex-column align-items-center justify-content-end';
+        barItem.style.height = "100%";
+        
+        barItem.innerHTML = `
+            <div class="cyl-bar-container cyl-color-purple" style="height: ${val === 0 ? minHeightPct : heightPct}%; width: ${barWidth};" title="${labels[index]}: ${val} Dokumen">
+                <div class="cyl-bar-top">${val > 0 ? val : ''}</div>
+                <div class="cyl-bar-body" style="height: 100%;"></div>
+                <div class="cyl-bar-base"></div>
+            </div>
+            <div class="cyl-bar-label" style="margin-top:15px; font-size: 8px;">${labels[index]}</div>
+        `;
+        
+        barContainer.appendChild(barItem);
+    });
+}
+
+    function renderCharts(stats) {
+  const ctx1 = document.getElementById('barChart').getContext('2d');
+  const ctx2 = document.getElementById('donutChart').getContext('2d');
+  
+  if(barChart) barChart.destroy();
+  if(donutChart) donutChart.destroy();
+
+  // 1. Grafik Batang Bulanan
+  barChart = new Chart(ctx1, {
+  type: 'bar',
+  data: {
+    labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
+    datasets: [{ 
+      label: 'Arsip', 
+      data: stats.monthly || [], 
+      backgroundColor: 'rgba(99, 102, 241, 0.8)', // Indigo transparan
+      hoverBackgroundColor: '#4f46e5', // Indigo pekat saat hover
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { 
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        padding: 12,
+        cornerRadius: 8
+      }
+    },
+    scales: { 
+      y: { 
+        beginAtZero: true, 
+        grid: { display: false }, // Hilangkan garis horizontal untuk tampilan bersih
+        ticks: { stepSize: 1 } 
+      },
+      x: {
+        grid: { display: false }
+      }
+    }
+  }
+});
+
+  // 2. Grafik Donut Kategori (DISESUAIKAN)
+  donutChart = new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(stats.categories || {}),
+      datasets: [{
+        data: Object.values(stats.categories || {}),
+        // Palet warna profesional (Indigo, Purple, Pink, Orange, Teal)
+        backgroundColor: [
+          '#6366f1', '#a855f7', '#ec4899', '#f59e0b', '#14b8a6', '#64748b'
+        ],
+        hoverOffset: 10,
+        borderWidth: 2,
+        borderColor: '#ffffff'
+      }]
+    },
+    options: {
+      cutout: '70%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            padding: 20,
+            font: { size: 11, family: 'Plus Jakarta Sans' }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.label || '';
+              let value = context.raw || 0;
+              return ` ${label}: ${value} Dokumen`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function loadTable() {
+  // 1. Matikan DataTables lama jika ada (Hard Reset)
+  if ($.fn.DataTable.isDataTable('#mainTable')) {
+    $('#mainTable').DataTable().clear().destroy();
+  }
+  
+  const tbody = document.getElementById('tableBody');
+  // Colspan 8 sesuai jumlah kolom di thead
+  tbody.innerHTML = '<tr><td colspan="8" class="text-center p-5"><div class="spinner-border text-primary"></div></td></tr>';
+  
+  google.script.run.withSuccessHandler(data => {
+    let rows = "";
+    if (data && data.length > 1) {
+      // BALIKKAN DATA: Data terbaru paling atas
+      let dataRows = data.slice(1).reverse(); 
+
+      for (let i = 0; i < dataRows.length; i++) {
+        const id       = dataRows[i][0] || "";
+        const docName  = dataRows[i][1] || "-";
+        const docNo    = dataRows[i][2] || "-";
+        const tglDok   = formatTanggalIndo(dataRows[i][3]); 
+        const fileSize = dataRows[i][8] || "0.00"; 
+        const category = dataRows[i][4] || "-";
+        const tglInput = formatTanggalIndo(dataRows[i][5]);
+        const link     = dataRows[i][6] || "#";
+
+        rows += `<tr>
+          <td class="text-center"></td> <!-- Index 0: NO -->
+          <td class="fw-bold text-dark" style="font-size: 13px;">${docName}</td>
+          <td class="text-secondary" style="font-size: 12px;">${docNo}</td>
+          <td class="text-center text-secondary">${tglDok}</td>
+          <td class="text-center text-primary fw-medium">${fileSize} MB</td>
+          <td class="text-center"><span class="status-badge badge-soft-blue">${category}</span></td>
+          <td class="text-center text-muted">${tglInput}</td>
+          <td>
+            <div class="action-container" style="display:flex; justify-content:center; gap:8px;">
+              <button onclick="window.open('${link}','_blank')" class="btn-saas-view"><i class="bi bi-eye-fill"></i> View</button>
+              <button onclick="delData('${id}')" class="btn-action-solid btn-delete-solid" style="width:28px; height:28px;"><i class="bi bi-trash-fill"></i></button>
+            </div>
+          </td>
+        </tr>`;
+      }
+      tbody.innerHTML = rows;
+
+      // 2. INISIALISASI DATATABLES
+      dataTableInstance = $('#mainTable').DataTable({
+        destroy: true,
+        responsive: true,
+        autoWidth: false,
+        pageLength: 10,
+        dom: 'rt<"d-flex justify-content-between align-items-center p-3"ip>',
+        buttons: [
+          {
+            extend: 'excelHtml5',
+            text: '<i class="bi bi-file-earmark-spreadsheet-fill"></i> EXCEL',
+            className: 'btn-excel-custom',
+            title: 'LAPORAN_ARSIP_DIGITAL',
+            exportOptions: {
+              columns: [0, 1, 2, 3, 4, 5, 6],
+              format: {
+                body: function (data, row, column, node) {
+                  // KUNCI: Paksa nomor urut 1,2,3 di Excel
+                  if (column === 0) return row + 1;
+                  // Bersihkan tag HTML badge kategori
+                  return typeof data === 'string' ? data.replace(/<[^>]*>/g, '') : data;
+                }
+              }
+            },
+            customize: function (xlsx) {
+              var sheet = xlsx.xl.worksheets['sheet1.xml'];
+              // Rata tengah kolom: NO, TGL, UKURAN, KAT, TGL INPUT (A, D, E, F, G)
+              $('row c[r^="A"], row c[r^="D"], row c[r^="E"], row c[r^="F"], row c[r^="G"]', sheet).attr('s', '51');
+              $('row:first c', sheet).attr('s', '2'); // Header Bold
+            }
+          },
+          {
+            extend: 'pdfHtml5',
+            text: '<i class="bi bi-file-earmark-pdf-fill"></i> PDF',
+            className: 'btn-pdf-custom',
+            orientation: 'landscape',
+            pageSize: 'A4',
+            exportOptions: {
+              columns: [0, 1, 2, 3, 4, 5, 6],
+              format: {
+                body: function (data, row, column, node) {
+                  // KUNCI: Paksa nomor urut 1,2,3 di PDF
+                  if (column === 0) return row + 1;
+                  return typeof data === 'string' ? data.replace(/<[^>]*>/g, '') : data;
+                }
+              }
+            },
+            customize: function (doc) {
+  // 1. Desain Header Laporan (Judul, Sub-judul, dan Tanggal Cetak)
+  doc.content.splice(0, 1, {
+    margin: [0, 0, 0, 20], // Jarak keseluruhan header ke tabel di bawahnya
+    table: {
+      widths: ['*'],
+      body: [
+        [{ text: 'LAPORAN ARSIP KEUANGAN', style: 'mainHeader' }],
+        [{ text: 'Manajemen Dokumen Arsip Digital', style: 'subHeader' }],
+        // PENAMBAHAN TANGGAL CETAK DI SINI
+        [{ text: 'Dicetak pada: ' + new Date().toLocaleString('id-ID'), style: 'timestamp' }]
+      ]
+    },
+    layout: 'noBorders',
+    alignment: 'center'
+  });
+
+  // 2. Definisi Style (Pastikan style timestamp ada)
+  doc.styles.mainHeader = { fontSize: 18, bold: true, color: '#4f46e5', margin: [0, 0, 0, 2] };
+  doc.styles.subHeader = { fontSize: 10, color: '#64748b', margin: [0, 0, 0, 2] };
+  doc.styles.timestamp = { fontSize: 8, color: '#94a3b8', italic: true, margin: [0, 0, 0, 0] };
+  
+  // Style Header Tabel Tetap Sama
+  doc.styles.tableHeader = { 
+    fillColor: '#6366f1', 
+    color: 'white', 
+    alignment: 'center', 
+    bold: true, 
+    fontSize: 9, 
+    padding: 5 
+  };
+
+  // 3. Pengaturan Lebar Kolom Tabel (Total 7 Kolom)
+  doc.content[1].table.widths = ['5%', '22%', '15%', '14%', '12%', '17%', '15%'];
+
+  // 4. Perataan Tengah Sel
+  var rowCount = doc.content[1].table.body.length;
+  for (var i = 1; i < rowCount; i++) {
+    doc.content[1].table.body[i][0].alignment = 'center';
+    doc.content[1].table.body[i][3].alignment = 'center';
+    doc.content[1].table.body[i][4].alignment = 'center';
+    doc.content[1].table.body[i][5].alignment = 'center';
+    doc.content[1].table.body[i][6].alignment = 'center';
+                // Nama Dokumen Bold
+                doc.content[1].table.body[i][1].bold = true;
+                doc.content[1].table.body[i][1].color = '#1e1b4b';
+              }
+
+              // Footer
+              doc['footer'] = function (page, pages) {
+                return {
+                  columns: [
+                    { text: 'Dicetak pada: ' + new Date().toLocaleString('id-ID'), fontSize: 7, color: '#94a3b8', margin: [40, 10] },
+                    { text: 'Halaman ' + page.toString() + ' dari ' + pages.toString(), fontSize: 7, color: '#94a3b8', alignment: 'right', margin: [0, 10, 40, 0] }
+                  ]
+                };
+              };
+            }
+          }
+        ],
+        columnDefs: [
+          { "targets": 0, "orderable": false, "className": "dt-center" }, 
+          { "className": "dt-center", "targets": [3, 4, 5, 6] },
+          { "orderable": false, "targets": [7] }
+        ],
+        order: []
+      });
+
+      // --- 3. KUNCI: NOMOR URUT DINAMIS DI LAYAR ---
+      dataTableInstance.on('draw.dt', function () {
+        let info = dataTableInstance.page.info();
+        dataTableInstance.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+          cell.innerHTML = i + 1 + info.start;
+        });
+      });
+      
+      dataTableInstance.draw(false);
+
+      // --- 4. CUSTOM UI HANDLERS ---
+      $('#exportButtonsArea').empty();
+      dataTableInstance.buttons().container().appendTo('#exportButtonsArea');
+
+      const searchInput = $('#customSearchInput');
+const clearBtn = $('#clearSearch');
+
+// A. Logika mengetik
+searchInput.off('keyup').on('keyup', function() {
+  const val = $(this).val();
+  if (dataTableInstance) {
+    dataTableInstance.search(val).draw();
+  }
+  // Munculkan tombol X jika ada teks
+  val.length > 0 ? clearBtn.show() : clearBtn.hide();
+});
+
+// B. Logika klik tombol X (KUNCI PERBAIKAN)
+clearBtn.off('click').on('click', function(e) {
+  e.preventDefault(); // Mencegah aksi default browser
+  e.stopPropagation(); // Mencegah klik tembus ke input
+  
+  console.log("Tombol X diklik, membersihkan pencarian...");
+  
+  searchInput.val(''); // Kosongkan kolom teks
+  $(this).hide();      // Sembunyikan dirinya sendiri (X)
+  
+  if (dataTableInstance) {
+    dataTableInstance.search('').draw(); // Reset filter tabel
+  }
+  
+  searchInput.focus(); // Kembalikan kursor ke kotak cari
+});
+
+    } else {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center p-5 text-muted">Belum ada data tersedia.</td></tr>';
+    }
+  }).getArchives();
+}
+
+function formatTanggalIndo(dateStr) {
+  if (!dateStr || dateStr === "-" || dateStr === "") return "-";
+  const bulanIndo = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  ];
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr; // Jika bukan tanggal, kembalikan aslinya
+  return d.getDate() + " " + bulanIndo[d.getMonth()] + " " + d.getFullYear();
+}
+
+function filterByCategory() {
+  const val = $('#filterCategory').val();
+  if (dataTableInstance) {
+    if (!val || val === "") {
+      dataTableInstance.column(5).search('').draw(); // Index 5
+    } else {
+      dataTableInstance.column(5).search('^' + val + '$', true, false).draw(); // Index 5
+    }
+  }
+}
+
+function uploadArsip() {
+    const n = document.getElementById('docName').value;
+    const num = document.getElementById('docNumber').value;
+    const dDate = document.getElementById('docDate').value;
+    const btn = document.getElementById('btnSave');
+
+    if(!selectedFileBlob || !n || !num || !dDate) return Swal.fire('Error', 'Lengkapi data dan file!', 'warning');
+
+    btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Mengirim ke Cloud...';
+    
+    const r = new FileReader();
+    r.onload = function(e) {
+        const session = JSON.parse(localStorage.getItem('archive_session'));
+        const p = {
+            docName: n,
+            docNumber: num,
+            docDate: dDate,
+            inputDate: document.getElementById('inputDate').value,
+            category: document.getElementById('category').value,
+            fileName: selectedFileName,
+            fileType: selectedFileType,
+            fileData: e.target.result.split(',')[1],
+            user: session ? session.user : "System"
+        };
+        
+        google.script.run.withSuccessHandler(() => {
+            Swal.fire('Berhasil', 'Data Berhasil Disimpan!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('modalAdd')).hide();
+            resetForm();
+            btn.disabled = false; btn.innerText = 'SINKRONISASI SEKARANG';
+            loadTable();
+        }).saveArchive(p);
+    };
+    r.readAsDataURL(selectedFileBlob);
+}
+
+    function delData(id) {
+      Swal.fire({ title: 'Hapus File?', text: "Data di Cloud akan terhapus permanen!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' })
+      .then(r => {
+        if(r.isConfirmed) {
+          google.script.run.withSuccessHandler(() => {
+            Swal.fire('Dihapus', 'Data berhasil dihapus', 'success');
+            loadTable();
+          }).deleteArchive(id);
+        }
+      });
+    }
+
+    // Perbarui fungsi switchTab Anda
+function switchTab(tab) {
+  console.log("Proses pindah tab ke: " + tab);
+
+  // --- 1. RESET DASHBOARD (FILTER GRAFIK) ---
+  const chartFilter = $('#chartFilter');
+  if (chartFilter.length > 0) {
+    // Paksa kembali ke 'year' dan beri tahu Select2 untuk update visualnya
+    chartFilter.val('year').trigger('change'); 
+  }
+
+  // --- 2. RESET DATA ARSIP (TABEL & SEARCH) ---
+  if (dataTableInstance) {
+    dataTableInstance.search('').columns().search('').page('first').draw();
+  }
+  
+  // Reset Filter Kategori di Data Arsip
+  const filterCat = $('#filterCategory');
+  if (filterCat.length > 0) {
+    filterCat.val('').trigger('change');
+  }
+
+  // --- 3. RESET PENGATURAN (BERSIHKAN SEMUA INPUT) ---
+  // Kita cari semua elemen input dan select di dalam tab settings lalu kosongkan
+  $('#tab-settings input').val(''); 
+  $('#tab-settings select').val('').trigger('change');
+  
+  // Khusus untuk sub-tab Pengaturan, kembalikan ke tab pertama (Kategori)
+  const firstSubTab = document.querySelector('#tab-settings .nav-link');
+  if (firstSubTab) {
+    const tabTrigger = new bootstrap.Tab(firstSubTab);
+    tabTrigger.show();
+  }
+
+  // --- 4. NAVIGASI SIDEBAR (HIGHLIGHT) ---
+  // Hapus semua class active di sidebar
+  $('.sidebar .nav-link').removeClass('active');
+  
+  // Tambahkan ke yang diklik (handle perbedaan ID dash dan dashboard)
+  let btnId = (tab === 'dashboard') ? '#btn-dash' : `#btn-${tab}`;
+  $(btnId).addClass('active');
+
+  // --- 5. TAMPILKAN KONTEN ---
+  // Sembunyikan semua tab dulu
+  $('#tab-dashboard, #tab-input, #tab-settings').addClass('d-none');
+  // Munculkan tab tujuan
+  $(`#tab-${tab}`).removeClass('d-none');
+
+  // --- 6. UPDATE JUDUL ---
+  const titles = {
+    dashboard: "Dashboard",
+    input: "Data Arsip",
+    settings: "Pengaturan"
+  };
+  $('#headerTitle').text(titles[tab]);
+
+  // --- 7. RE-LOAD DATA ---
+  if (tab === 'dashboard') loadStats();
+  if (tab === 'input') loadTable();
+  if (tab === 'settings') { loadCategoryTable(); loadUserTable(); }
+}
+
+// LOGIKA KATEGORI
+function loadCategoryTable() {
+  google.script.run.withSuccessHandler(data => {
+    if (!data) return;
+
+    if ($.fn.DataTable.isDataTable('#catDataTable')) {
+      $('#catDataTable').DataTable().destroy();
+    }
+
+    const tbody = document.getElementById('tableCategory');
+    let rows = "";
+
+    for(let i = 1; i < data.length; i++) {
+      const catName = data[i][0];
+      if (!catName) continue;
+
+      rows += `<tr>
+        <td class="text-center text-muted small"></td> <!-- NO -->
+        <td>
+          <div class="cat-info-box">
+            <!-- ICON AVATAR KATEGORI UNIK -->
+            <div class="category-icon-gradient">
+              <i class="bi bi-tag-fill"></i>
+            </div>
+            <span class="fw-bold text-dark" style="font-size: 13px;">${catName}</span>
+          </div>
+        </td>
+        <td class="text-center">
+          <div class="d-flex justify-content-center">
+            <button onclick="deleteCat('${catName}')" class="btn-action-solid btn-delete-solid" style="width:28px; height:28px;">
+              <i class="bi bi-trash-fill" style="font-size: 11px;"></i>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+    }
+    tbody.innerHTML = rows;
+
+    // Inisialisasi ulang DataTables (Tetap gunakan config yang sebelumnya sudah presisi)
+    catDataTableInstance = $('#catDataTable').DataTable({
+      destroy: true,
+      responsive: true,
+      autoWidth: false,
+      pageLength: 5,
+      lengthChange: false,
+      dom: '<"border-bottom"f>rt<"d-flex justify-content-between align-items-center"ip>',
+      language: {
+        Cari: " ",
+        searchPlaceholder: "Cari kategori...",
+        info: "Total _TOTAL_ kategori",
+        paginate: { previous: '<i class="bi bi-chevron-left"></i>', next: '<i class="bi bi-chevron-right"></i>' }
+      },
+      columnDefs: [
+        { width: "50px", targets: 0, className: "text-center" },
+        { width: "auto", targets: 1 },
+        { width: "100px", targets: 2, className: "text-center", orderable: false }
+      ],
+      order: [[1, 'asc']]
+    });
+
+    // Nomor Urut Otomatis
+    catDataTableInstance.on('order.dt search.dt', function () {
+        let n = 1;
+        catDataTableInstance.column(0, { Cari: 'applied', order: 'applied' }).nodes().each(function (cell) {
+            cell.innerHTML = n++;
+        });
+    }).draw();
+
+    updateDropdowns(data);
+  }).getCategories();
+}
+
+function updateDropdowns(data) {
+    let optionsUpload = ""; 
+    let optionsFilter = '<option value="">Semua Kategori</option>'; 
+
+    for(let i = 1; i < data.length; i++) {
+      const catName = data[i][0];
+      const opt = `<option value="${catName}">${catName}</option>`;
+      optionsUpload += opt;
+      optionsFilter += opt;
+    }
+
+    // Update Dropdown Modal & Filter
+    if ($('#category').data('select2')) $('#category').select2('destroy');
+    if ($('#filterCategory').data('select2')) $('#filterCategory').select2('destroy');
+
+    document.getElementById('category').innerHTML = optionsUpload;
+    document.getElementById('filterCategory').innerHTML = optionsFilter;
+
+    // Re-init Select2
+    initSelect2();
+}
+
+function saveNewCategory() {
+  const name = document.getElementById('newCatName').value;
+  if(!name) return Swal.fire('Error', 'Nama kategori harus diisi', 'warning');
+  
+  google.script.run.withSuccessHandler(() => {
+    document.getElementById('newCatName').value = "";
+    loadCategoryTable(); // Refresh otomatis semua dropdown & tabel
+    Swal.fire('Berhasil', 'Kategori ditambahkan', 'success');
+  }).addCategory(name);
+}
+
+function deleteCat(name) {
+  Swal.fire({
+    title: 'Hapus Kategori?',
+    text: "Kategori ini akan hilang dari pilihan filter dan upload.",
+    icon: 'warning',
+    showCancelButton: true
+  }).then(r => {
+    if(r.isConfirmed) {
+      google.script.run.withSuccessHandler(() => {
+        loadCategoryTable(); // Refresh otomatis
+        Swal.fire('Terhapus', 'Kategori telah dihapus', 'success');
+      }).deleteCategory(name);
+    }
+  });
+}
+
+// LOGIKA USER
+function loadUserTable() {
+  try {
+    console.log("Inisialisasi Tabel User Manajemen...");
+    
+    // 1. Matikan DataTables lama jika ada (Hard Reset)
+    if ($.fn.DataTable.isDataTable('#userTableMain')) {
+      $('#userTableMain').DataTable().clear().destroy();
+    }
+
+    const tbody = document.getElementById('tableUsers');
+    if (!tbody) return;
+    
+    // Tampilkan loading spinner dengan colspan 5 (No, Username, Nama, Email, Aksi)
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-5"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
+
+    google.script.run.withSuccessHandler(data => {
+      try {
+        let rows = "";
+        if (data && data.length > 1) {
+          for (let i = 1; i < data.length; i++) {
+            const username = data[i][0] || "-";
+            const fullName = data[i][2] || "-";
+            const email    = data[i][4] || "-";
+            
+            rows += `<tr>
+              <td class="text-center text-muted small"></td> <!-- Kolom NO (Diisi dinamis) -->
+              <td>
+                <div class="user-info-box d-flex align-items-center gap-3">
+                  <div class="avatar-gradient">
+                    <i class="bi bi-person-fill"></i>
+                  </div>
+                  <span class="fw-bold text-dark" style="font-size: 13px;">${username}</span>
+                </div>
+              </td>
+              <td class="text-secondary" style="font-size: 12.5px;">${fullName}</td>
+              <td class="text-muted" style="font-size: 12px;">${email}</td>
+              <td class="text-center">
+                <div class="action-container" style="display: flex; justify-content: center; align-items: center;">
+                  ${username !== 'admin' ? 
+                    `<button onclick="delUser('${username}')" class="btn-action-solid btn-delete-solid" style="width:28px; height:28px;" title="Hapus User">
+                      <i class="bi bi-trash-fill" style="font-size: 11px;"></i>
+                    </button>` : 
+                    `<span class="badge-system">SYSTEM</span>`
+                  }
+                </div>
+              </td>
+            </tr>`;
+          }
+          
+          // SUNTIKKAN HTML SEBELUM INISIALISASI
+          tbody.innerHTML = rows;
+
+          // 2. INISIALISASI DATATABLES KHUSUS USER
+          const utable = $('#userTableMain').DataTable({
+            destroy: true,
+            responsive: true,
+            autoWidth: false,
+            pageLength: 5,
+            lengthChange: false,
+            // dom: r (processing), t (table), i (info), p (pagination)
+            dom: 'rt<"d-flex justify-content-between align-items-center p-3"ip>',
+            language: {
+              info: "Total _TOTAL_ user",
+              paginate: { 
+                previous: "<i class='bi bi-chevron-left'></i>", 
+                next: "<i class='bi bi-chevron-right'></i>" 
+              }
+            },
+            columnDefs: [
+              { width: "45px", targets: 0, className: "dt-center" }, 
+              { width: "180px", targets: 1 }, 
+              { width: "auto", targets: 2 },  
+              { width: "auto", targets: 3 },  
+              { width: "80px", targets: 4, orderable: false, className: "dt-center" }
+            ],
+            order: [[1, 'asc']] // Urutkan berdasarkan Username
+          });
+
+          // 3. LOGIKA NOMOR URUT DINAMIS (SEARCH & FILTER COMPATIBLE)
+          utable.on('draw.dt', function () {
+            var info = utable.page.info();
+            utable.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1 + info.start;
+            });
+          });
+          
+          // Paksa jalankan draw agar nomor urut muncul di awal
+          utable.draw(false);
+
+          // 4. HUBUNGKAN SEARCH BOX CUSTOM
+          const searchInput = $('#userSearchInput');
+          const clearBtn = $('#clearUserSearch');
+
+          // Matikan listener lama untuk mencegah duplikasi
+          searchInput.off('keyup').on('keyup', function() {
+            utable.search(this.value).draw();
+            this.value.length > 0 ? clearBtn.show() : clearBtn.hide();
+          });
+
+          clearBtn.off('click').on('click', function() {
+            searchInput.val('');
+            $(this).hide();
+            utable.search('').draw();
+            searchInput.focus();
+          });
+
+        } else {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center p-5 text-muted">Belum ada user terdaftar.</td></tr>';
+        }
+      } catch (err) {
+        console.error("Render Error:", err);
+      }
+    }).getAllUsers();
+
+  } catch (err) {
+    console.error("Critical Error loadUserTable:", err);
+    // Jika terjadi error parah, pastikan loader hilang
+    const loader = document.getElementById('loadingOverlay');
+    if (loader) loader.style.display = 'none';
+  }
+}
+
+function saveNewUser() {
+  const fullName = document.getElementById('newFullName').value;
+  const email = document.getElementById('newEmail').value.trim().toLowerCase();
+  const username = document.getElementById('newUsername').value;
+  const password = document.getElementById('newPassword').value;
+  const btn = document.getElementById('btnSaveUser');
+
+  // 1. Validasi
+  if (!fullName || !email || !username || !password) {
+    return Swal.fire('Error', 'Semua kolom wajib diisi!', 'warning');
+  }
+
+  if (!email.endsWith('@gmail.com')) {
+    return Swal.fire('Email Salah', 'Wajib menggunakan @gmail.com!', 'error');
+  }
+
+  // 2. Animasi Loading
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Memproses...';
+
+
+  const userData = {
+    fullName: fullName,
+    email: email,
+    username: username,
+    password: password
+  };
+
+  // 3. Kirim ke Server (Menggunakan fungsi registerUser yang sama agar efisien)
+  google.script.run.withSuccessHandler(res => {
+    btn.disabled = false;
+    btn.innerText = 'SIMPAN USER';
+    
+    if (res.success) {
+      Swal.fire('Berhasil!', 'User baru telah ditambahkan.', 'success');
+      // Bersihkan Form
+      document.getElementById('newFullName').value = "";
+      document.getElementById('newEmail').value = "";
+      document.getElementById('newUsername').value = "";
+      document.getElementById('newPassword').value = "";
+      // Refresh Tabel
+      loadUserTable();
+    } else {
+      Swal.fire('Gagal', res.msg, 'error');
+    }
+  }).registerUser(userData);
+}
+
+function delUser(username) {
+  Swal.fire({title: 'Hapus User?', icon: 'warning', showCancelButton: true}).then(r => {
+    if(r.isConfirmed) google.script.run.withSuccessHandler(() => loadUserTable()).deleteUser(username);
+  });
+}
+
+function resetForm() {
+  // Input teks & tanggal
+  document.getElementById('docName').value = "";
+  document.getElementById('docNumber').value = "";
+  document.getElementById('docDate').value = "";
+  document.getElementById('inputDate').valueAsDate = new Date();
+  
+  // Reset Dropdown Kategori di Modal
+  if ($('#category').data('select2')) {
+    $('#category').val(null).trigger('change');
+  }
+
+  // Reset Area Upload
+  document.getElementById('uploadText').style.display = 'block';
+  document.getElementById('fileInfo').style.display = 'none';
+  selectedFileBlob = null;
+  
+  // Reset Button
+  const btn = document.getElementById('btnSave');
+  btn.disabled = false;
+  btn.innerHTML = 'SINKRONISASI SEKARANG';
+}
+
+function initSelect2() {
+  // 1. Inisialisasi Filter Kategori (Halaman Utama)
+  const filterCat = $('#filterCategory');
+  
+  filterCat.select2({
+    width: '200px',
+    minimumResultsForCari: 0,
+    dropdownParent: $('body'),
+    language: {
+      noResults: function() { return "Kategori tidak ditemukan"; }
+    }
+  });
+
+  // KUNCI PERBAIKAN: Gunakan event select2:select
+  filterCat.off('select2:select').on('select2:select', function (e) {
+    const data = e.params.data;
+    // Set nilai select asli agar sinkron
+    $(this).val(data.id).trigger('change.select2'); 
+    // Jalankan fungsi filter tabel
+    filterByCategory();
+  });
+
+  // 2. Filter Chart
+  $('#chartFilter').select2({
+    width: '150px',
+    minimumResultsForCari: Infinity
+  }).off('select2:select').on('select2:select', function() {
+    loadStats();
+  });
+
+  // 3. Dropdown di Modal
+  $('#category').select2({
+    width: '100%',
+    dropdownParent: $('#modalAdd'),
+    placeholder: "Pilih Kategori"
+  });
+}
+
+// Panggil fungsi ini setiap kali data dropdown diperbarui (misal di loadCategoryTable)
+function updateAllDropdowns() {
+    $('.form-select').select2('destroy'); // Reset dulu
+    initSelect2(); // Jalankan kembali
+}
+
+// 1. Fungsi untuk pindah-pindah form Login/Register
+function toggleAuth(isRegister) {
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const sideTitle = document.getElementById('sideTitle');
+  const sideDesc = document.getElementById('sideDesc');
+
+  if (isRegister) {
+    loginForm.classList.add('d-none');
+    registerForm.classList.remove('d-none');
+    sideTitle.innerText = "Buat akun anda!";
+    sideDesc.innerText = "Buat akun untuk mulai mengelola dokumen digital Anda dengan lebih efisien.";
+  } else {
+    registerForm.classList.add('d-none');
+    loginForm.classList.remove('d-none');
+    sideTitle.innerText = "Selamat datang!";
+    sideDesc.innerText = "Anda dapat masuk untuk mengaksesnya menggunakan akun Anda yang sudah ada.";
+  }
+}
+
+// 2. Fungsi untuk proses Registrasi
+function doRegister() {
+  const fullName = document.getElementById('regFullName').value;
+  const email = document.getElementById('regEmail').value.trim().toLowerCase(); // Input baru
+  const username = document.getElementById('regUser').value;
+  const password = document.getElementById('regPass').value;
+  const btn = document.getElementById('btnReg');
+
+  // 1. Validasi Kelengkapan Data
+  if (!fullName || !email || !username || !password) {
+    return Swal.fire({
+      icon: 'warning',
+      title: 'Data Tidak Lengkap',
+      text: 'Harap lengkapi semua kolom termasuk email.',
+      confirmButtonText: 'SIAP',
+      showClass: { popup: 'animate__animated animate__shakeX' }
+    });
+  }
+
+  // 2. Validasi Khusus Email Google (@gmail.com)
+  if (!email.endsWith('@gmail.com')) {
+    return Swal.fire({
+      icon: 'error',
+      title: 'Email Ditolak',
+      text: 'Pendaftaran hanya diizinkan menggunakan alamat @gmail.com!',
+      confirmButtonText: 'PERBAIKI EMAIL',
+      confirmButtonColor: '#ef4444'
+    });
+  }
+
+  // Visual feedback pada tombol
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Memproses...';
+
+  // Loading Pop-up
+  Swal.fire({
+    title: 'Membuat Akun',
+    text: 'Sedang mendaftarkan identitas digital Anda...',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  const userData = {
+    fullName: fullName,
+    email: email,    // Tambahkan email ke objek data
+    username: username,
+    password: password
+  };
+
+  google.script.run.withSuccessHandler(res => {
+    Swal.close();
+    btn.disabled = false;
+    btn.innerText = 'CREATE ACCOUNT';
+
+    if (res.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Registrasi Berhasil!',
+        text: res.msg,
+        confirmButtonText: 'MASUK SEKARANG',
+        timer: 4000,
+        timerProgressBar: true
+      }).then(() => {
+        // Bersihkan Semua Form
+        document.getElementById('regFullName').value = "";
+        document.getElementById('regEmail').value = "";
+        document.getElementById('regUser').value = "";
+        document.getElementById('regPass').value = "";
+        
+        // Alihkan ke halaman login
+        toggleAuth(false);
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Registrasi Gagal',
+        text: res.msg,
+        confirmButtonText: 'PERBAIKI'
+      });
+    }
+  }).registerUser(userData);
+}
+
+function openUserManagement() {
+  // 1. Masuk ke tab Pengaturan utama
+  switchTab('settings');
+
+  // 2. Cari tombol navigasi sub-tab 'User Manajemen'
+  const userTabTrigger = document.querySelector('button[data-bs-target="#sub-users"]');
+  
+  if (userTabTrigger) {
+    // 3. Gunakan API Bootstrap untuk menampilkan tab tersebut
+    const tab = new bootstrap.Tab(userTabTrigger);
+    tab.show();
+    
+    // 4. Pastikan data user dimuat ulang
+    loadUserTable();
+  }
+}
+
+function forgotPassword() {
+  Swal.fire({
+    title: 'Lupa Password?',
+    text: "Masukkan Username Anda, link tautan untuk mengganti password akan dikirim melalui email anda yang terdaftar.",
+    input: 'text',
+    inputPlaceholder: 'Username Anda',
+    inputAttributes: { autocapitalize: 'off' },
+    showCancelButton: true,
+    confirmButtonText: 'KIRIM PASSWORD',
+    cancelButtonText: 'BATAL',
+    showLoaderOnConfirm: true,
+    confirmButtonColor: '#7c3aed',
+    preConfirm: (username) => {
+      if (!username) return Swal.showValidationMessage('Username wajib diisi!');
+      return new Promise((resolve) => {
+        // Memanggil fungsi di Code.gs (Pastikan sudah Anda buat di file Code.gs)
+        google.script.run.withSuccessHandler(res => {
+          resolve(res);
+        }).processForgotPassword(username);
+      });
+    },
+    allowOutsideClick: () => !Swal.isLoading()
+  }).then((result) => {
+    if (result.isConfirmed) {
+      if (result.value.success) {
+        Swal.fire('Berhasil!', result.value.msg, 'success');
+      } else {
+        Swal.fire('Gagal', result.value.msg, 'error');
+      }
+    }
+  });
+}
+  </script>
+</body>
+</html>
