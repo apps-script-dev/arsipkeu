@@ -1,0 +1,345 @@
+const SPREADSHEET_ID = "1omqdpIcFa-1U-3dF7hSZkCNW3dNoqUO9pFc5uxZ1isI";
+const FOLDER_ID = "1WptHOgvsZcnRGxbNDwVPEqjfUlPlql3q";
+
+function doGet(e) {
+  var output = HtmlService.createTemplateFromFile('Index');
+  
+  // Tangkap token jika ada di URL (misal: ?token=xyz)
+  output.token = e.parameter.token || null;
+  
+  return output.evaluate()
+    .setTitle('ARSIP KEUANGAN')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function checkLogin(u, p) {
+  try {
+    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Users");
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0].toString() == u && data[i][1].toString() == p) {
+        return { success: true, user: data[i][2], avatar: data[i][3] };
+      }
+    }
+  } catch(e) { return { success: false }; }
+  return { success: false };
+}
+
+function getDashboardData() {
+  try {
+    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Archives");
+    const data = sheet.getDataRange().getValues();
+    const now = new Date();
+    
+    // Tentukan awal minggu (Senin)
+    const day = now.getDay();
+    const diffToMonday = now.getDate() - day + (day === 0 ? -6 : 1); 
+    const startOfWeek = new Date(now.setDate(diffToMonday));
+    startOfWeek.setHours(0,0,0,0);
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23,59,59,999);
+
+    let stats = { 
+      total: 0, 
+      categories: {}, 
+      monthly: Array(12).fill(0),
+      daily: Array(32).fill(0),
+      weekly: Array(7).fill(0) // Indeks 0=Senin, ..., 6=Minggu
+    };
+
+    if (data.length > 1) {
+      stats.total = data.length - 1;
+      for (let i = 1; i < data.length; i++) {
+        let cat = data[i][4] || "Lainnya"; 
+        stats.categories[cat] = (stats.categories[cat] || 0) + 1;
+
+        let date = new Date(data[i][3]);
+        if (!isNaN(date.getTime())) {
+          // 1. Tahun/Bulan (Seperti sebelumnya)
+          stats.monthly[date.getMonth()] += 1;
+          if (date.getMonth() === new Date().getMonth()) {
+            stats.daily[date.getDate()] += 1;
+          }
+
+          // 2. LOGIKA MINGGU INI (Senin-Minggu)
+          if (date >= startOfWeek && date <= endOfWeek) {
+            let dayIndex = date.getDay(); // 0=Minggu, 1=Senin...
+            let adjustedIndex = (dayIndex === 0) ? 6 : dayIndex - 1; // Ubah ke 0=Senin...6=Minggu
+            stats.weekly[adjustedIndex] += 1;
+          }
+        }
+      }
+    }
+    return stats;
+  } catch(e) {
+    return { total: 0, categories: {}, monthly: Array(12).fill(0), daily: Array(32).fill(0), weekly: Array(7).fill(0) };
+  }
+}
+
+// FUNGSI INI YANG DIPERBAIKI (Gunakan getDisplayValues)
+function getArchives() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName("Archives");
+    if (!sheet) return "Error: Nama Sheet salah";
+    
+    // Mengambil data sebagai teks (Display Values) agar tidak error saat dikirim ke browser
+    const values = sheet.getDataRange().getDisplayValues();
+    return values; 
+  } catch (e) {
+    return "Error: " + e.toString();
+  }
+}
+
+function saveArchive(p) {
+  try {
+    const folder = DriveApp.getFolderById(FOLDER_ID);
+    const blob = Utilities.newBlob(Utilities.base64Decode(p.fileData), p.fileType, p.fileName);
+    
+    // HITUNG UKURAN FILE (Bytes ke MB)
+    const sizeInBytes = blob.getBytes().length;
+    const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(2); // Ambil 2 angka di belakang koma
+
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Archives");
+    
+    // Urutan Kolom: [0]ID, [1]Nama, [2]No, [3]TglDok, [4]Kat, [5]TglInput, [6]Link, [7]Uploader, [8]SizeMB
+    sheet.appendRow([
+      "ARC-" + Date.now(), 
+      p.docName, 
+      p.docNumber,
+      p.docDate,
+      p.category, 
+      p.inputDate,
+      file.getUrl(), 
+      p.user,
+      sizeInMB // Data baru
+    ]);
+    return "Sukses";
+  } catch (e) {
+    return "Gagal: " + e.message;
+  }
+}
+
+function deleteArchive(id) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName("Archives");
+    const data = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === id) {
+        // Ambil URL file dari kolom G (index 6)
+        const fileUrl = data[i][6];
+        
+        // 1. Logika Hapus File di Google Drive
+        if (fileUrl && fileUrl !== "#") {
+          try {
+            // Ekstrak ID file dari URL Drive
+            const fileId = fileUrl.match(/[-\w]{25,}/);
+            if (fileId) {
+              DriveApp.getFileById(fileId[0]).setTrashed(true); // Pindah ke Trash (aman)
+              // Jika ingin hapus permanen: Drive.Files.remove(fileId[0]); (perlu API khusus)
+            }
+          } catch (e) {
+            console.error("Gagal menghapus file di Drive: " + e.message);
+          }
+        }
+        
+        // 2. Hapus baris di Google Sheets
+        sheet.deleteRow(i + 1);
+        return "Berhasil dihapus dari Database dan Drive";
+      }
+    }
+    return "Data tidak ditemukan";
+  } catch (e) {
+    return "Error: " + e.toString();
+  }
+}
+
+// --- PENGATURAN KATEGORI ---
+function getCategories() {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Categories");
+  return sheet.getDataRange().getValues();
+}
+
+function addCategory(name) {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Categories");
+  sheet.appendRow([name]);
+  return "Kategori berhasil ditambahkan";
+}
+
+function deleteCategory(name) {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Categories");
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === name) {
+      sheet.deleteRow(i + 1);
+      break;
+    }
+  }
+  return "Kategori dihapus";
+}
+
+// --- PENGATURAN USER ---
+function getAllUsers() {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Users");
+  return sheet.getDataRange().getValues();
+}
+
+function addUser(userData) {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Users");
+  sheet.appendRow([userData.username, userData.password, userData.fullName, userData.avatar]);
+  return "User baru berhasil ditambahkan";
+}
+
+function deleteUser(username) {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Users");
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === username) {
+      sheet.deleteRow(i + 1);
+      break;
+    }
+  }
+  return "User dihapus";
+}
+
+function registerUser(userData) {
+  try {
+    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName("Users");
+    const data = sheet.getDataRange().getValues();
+    
+    // Cek duplikasi username (Kolom A)
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0].toString() === userData.username) {
+        return { success: false, msg: "Username sudah digunakan!" };
+      }
+      // Cek duplikasi email (Kolom E)
+      if (data[i][4] && data[i][4].toString() === userData.email) {
+        return { success: false, msg: "Email sudah terdaftar!" };
+      }
+    }
+    
+    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName)}&background=6366f1&color=fff&rounded=true`;
+    
+    // Simpan data (Urutan: Username, Password, Nama, Avatar, Email)
+    // Pastikan di Google Sheets kolom E adalah Email
+    sheet.appendRow([
+      userData.username, 
+      userData.password, 
+      userData.fullName, 
+      defaultAvatar,
+      userData.email
+    ]);
+    
+    return { success: true, msg: "Akun Google Anda berhasil didaftarkan!" };
+  } catch (e) {
+    return { success: false, msg: "Terjadi kesalahan: " + e.message };
+  }
+}
+
+function getRecentActivity() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName("Archives");
+    if (!sheet) return [];
+    
+    // Ambil semua data sebagai teks yang terlihat (Display Values)
+    const data = sheet.getDataRange().getDisplayValues(); 
+    if (data.length <= 1) return [];
+    
+    // Ambil data tanpa header, balik urutan (terbaru di atas), ambil 5 teratas
+    const recentData = data.slice(1).reverse().slice(0, 5);
+    return recentData;
+  } catch (e) {
+    console.error("Error getRecentActivity: " + e.message);
+    return [];
+  }
+}
+
+function processForgotPassword(username) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName("Users");
+    const data = sheet.getDataRange().getValues();
+    
+    // Ambil URL Web App Anda secara otomatis
+    const webAppUrl = ScriptApp.getService().getUrl();
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0].toString() === username) {
+        const userEmail = data[i][4]; // Kolom E
+        if (!userEmail) return { success: false, msg: "Email tidak terdaftar." };
+
+        // Buat Token unik
+        const token = Utilities.base64Encode(Math.random().toString() + Date.now());
+        
+        // Simpan token ke kolom F (Index 5)
+        sheet.getRange(i + 1, 6).setValue(token);
+
+        // Buat Link Reset
+        const webAppUrl = ScriptApp.getService().getUrl().replace(/\/dev$/, "/exec");
+        const resetLink = webAppUrl + "?token=" + token;
+
+        // Kirim Email
+        MailApp.sendEmail({
+          to: userEmail,
+          subject: "Atur Ulang Password - E-Archive Pro",
+          htmlBody: `
+            <div style="font-family: 'Inter', sans-serif; padding: 30px; background-color: #f8fafc; border-radius: 15px;">
+              <h2 style="color: #7c3aed; margin-bottom: 20px;">Permintaan Atur Ulang Password</h2>
+              <p>Halo, <strong>${data[i][2]}</strong>.</p>
+              <p>Kami menerima permintaan untuk mengatur ulang password akun Anda. Silakan klik tombol di bawah ini untuk melanjutkan:</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetLink}" style="background-color: #7c3aed; color: white; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">ATUR ULANG PASSWORD</a>
+              </div>
+              <p style="font-size: 12px; color: #94a3b8;">Jika tombol tidak berfungsi, salin link berikut ke browser Anda:</p>
+              <p style="font-size: 11px; color: #6366f1;">${resetLink}</p>
+              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+              <p style="font-size: 12px; color: #94a3b8;">Abaikan email ini jika Anda tidak merasa melakukan permintaan ini.</p>
+            </div>
+          `
+        });
+        
+        return { success: true, msg: "Link pemulihan telah dikirim ke email Google Anda." };
+      }
+    }
+    return { success: false, msg: "Username tidak ditemukan." };
+  } catch (e) {
+    return { success: false, msg: "Error: " + e.toString() };
+  }
+}
+
+function finalizeResetPassword(token, newPass) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName("Users");
+    const data = sheet.getRange("F:F").getValues(); // Cek di kolom ResetToken
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === token && token !== "") {
+        // Update Password (Kolom B / Index 2)
+        sheet.getRange(i + 1, 2).setValue(newPass);
+        // Hapus token agar tidak bisa dipakai lagi (Kolom F / Index 6)
+        sheet.getRange(i + 1, 6).setValue("");
+        return { success: true, msg: "Password berhasil diperbarui! Silakan Login." };
+      }
+    }
+    return { success: false, msg: "Link kadaluwarsa atau tidak valid." };
+  } catch (e) {
+    return { success: false, msg: e.toString() };
+  }
+}
+
+function PAKSA_IZIN() {
+  GmailApp.sendEmail(Session.getActiveUser().getEmail(), "Test Izin", "Cek");
+}
+
+// Tambahkan parameter pada getDashboardData untuk mendukung filter waktu jika diperlukan, 
+// namun untuk efisiensi kita kirimkan semua data mentah tanggal ke frontend agar diproses JS.
