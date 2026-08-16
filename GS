@@ -2,13 +2,13 @@ const SPREADSHEET_ID = "1omqdpIcFa-1U-3dF7hSZkCNW3dNoqUO9pFc5uxZ1isI";
 const FOLDER_ID = "1WptHOgvsZcnRGxbNDwVPEqjfUlPlql3q";
 
 function doGet(e) {
-  var output = HtmlService.createTemplateFromFile('Index');
+  var template = HtmlService.createTemplateFromFile('Index');
   
-  // Tangkap token jika ada di URL (misal: ?token=xyz)
-  output.token = e.parameter.token || null;
+  // Pastikan token terdefinisi (jika tidak ada di URL, isi string kosong)
+  template.token = e.parameter.token || ""; 
   
-  return output.evaluate()
-    .setTitle('ARSIP KEUANGAN')
+  return template.evaluate()
+    .setTitle('ARSIP KEUANGAN PREMIUM')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -238,7 +238,7 @@ function registerUser(userData) {
       userData.email
     ]);
     
-    return { success: true, msg: "Akun Google Anda berhasil didaftarkan!" };
+    return { success: true, msg: "Akun anda telah berhasil didaftarkan!" };
   } catch (e) {
     return { success: false, msg: "Terjadi kesalahan: " + e.message };
   }
@@ -269,50 +269,54 @@ function processForgotPassword(username) {
     const sheet = ss.getSheetByName("Users");
     const data = sheet.getDataRange().getValues();
     
-    // Ambil URL Web App Anda secara otomatis
-    const webAppUrl = ScriptApp.getService().getUrl();
+    // Ambil URL Web App versi /exec secara otomatis
+    let webAppUrl = ScriptApp.getService().getUrl();
+    if (!webAppUrl) return { success: false, msg: "Web App belum dideploy sebagai 'Anyone'." };
+    webAppUrl = webAppUrl.replace(/\/dev$/, "/exec");
 
     for (let i = 1; i < data.length; i++) {
       if (data[i][0].toString() === username) {
-        const userEmail = data[i][4]; // Kolom E
-        if (!userEmail) return { success: false, msg: "Email tidak terdaftar." };
+        const userEmail = data[i][4]; // Kolom E (Pastikan ini alamat gmail)
+        const fullName = data[i][2];  // Kolom C
+        
+        if (!userEmail || !userEmail.includes('@')) {
+          return { success: false, msg: "Email di database tidak valid atau kosong." };
+        }
 
         // Buat Token unik
-        const token = Utilities.base64Encode(Math.random().toString() + Date.now());
+        const token = Utilities.base64Encode(username + Date.now() + Math.random());
         
-        // Simpan token ke kolom F (Index 5)
+        // Simpan token ke kolom F (Baris i+1, Kolom 6)
         sheet.getRange(i + 1, 6).setValue(token);
 
         // Buat Link Reset
-        const webAppUrl = ScriptApp.getService().getUrl().replace(/\/dev$/, "/exec");
         const resetLink = webAppUrl + "?token=" + token;
 
-        // Kirim Email
-        MailApp.sendEmail({
-          to: userEmail,
-          subject: "Atur Ulang Password - E-Archive Pro",
+        // KIRIM EMAIL MENGGUNAKAN GMAILAPP (Lebih Stabil)
+        GmailApp.sendEmail(userEmail, "Atur Ulang Password", "", {
           htmlBody: `
-            <div style="font-family: 'Inter', sans-serif; padding: 30px; background-color: #f8fafc; border-radius: 15px;">
-              <h2 style="color: #7c3aed; margin-bottom: 20px;">Permintaan Atur Ulang Password</h2>
-              <p>Halo, <strong>${data[i][2]}</strong>.</p>
-              <p>Kami menerima permintaan untuk mengatur ulang password akun Anda. Silakan klik tombol di bawah ini untuk melanjutkan:</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${resetLink}" style="background-color: #7c3aed; color: white; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">ATUR ULANG PASSWORD</a>
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; background-color: #f4f7fe; border-radius: 15px; color: #334155;">
+              <h2 style="color: #6366f1; margin-bottom: 20px;">Halo, ${fullName}</h2>
+              <p style="font-size: 16px;">Kami menerima permintaan untuk mengatur ulang password akun Anda.</p>
+              <p style="font-size: 14px; color: #64748b;">Silakan klik tombol di bawah ini untuk mengganti password Anda. Link ini hanya berlaku selama sesi aktif belum berakhir.</p>
+              <div style="text-align: center; margin: 35px 0;">
+                <a href="${resetLink}" target="_blank" style="background-color: #6366f1; color: white; padding: 15px 35px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">ATUR ULANG PASSWORD</a>
               </div>
-              <p style="font-size: 12px; color: #94a3b8;">Jika tombol tidak berfungsi, salin link berikut ke browser Anda:</p>
-              <p style="font-size: 11px; color: #6366f1;">${resetLink}</p>
-              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-              <p style="font-size: 12px; color: #94a3b8;">Abaikan email ini jika Anda tidak merasa melakukan permintaan ini.</p>
+              <p style="font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                Jika Anda tidak meminta ini, abaikan email ini.<br>
+                <b>Penting:</b> Jangan berikan link ini kepada siapapun.
+              </p>
             </div>
           `
         });
         
-        return { success: true, msg: "Link pemulihan telah dikirim ke email Google Anda." };
+        return { success: true, msg: "Link pemulihan telah dikirim ke email Google Anda (" + userEmail + ")." };
       }
     }
-    return { success: false, msg: "Username tidak ditemukan." };
+    return { success: false, msg: "Username '" + username + "' tidak ditemukan dalam sistem." };
   } catch (e) {
-    return { success: false, msg: "Error: " + e.toString() };
+    console.error(e.toString());
+    return { success: false, msg: "Terjadi kesalahan server: " + e.message };
   }
 }
 
